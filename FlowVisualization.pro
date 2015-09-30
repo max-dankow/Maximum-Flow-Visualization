@@ -14,7 +14,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    cvisablevertex.cpp
+    cvisablevertex.cpp \
+    algorithmrelabeltofront.cpp \
+    network.cpp
 
 HEADERS  += mainwindow.h \
-    cvisablevertex.h
+    cvisablevertex.h \
+    algorithmrelabeltofront.h \
+    network.h

@@ -16,6 +16,7 @@ public:
     void addVertex(GLdouble coordX, GLdouble coordY);
 protected:
     std::vector<CVertexGL> vertecies;
+    /*
     int geese_size; // Сторона квадрата
     int point; // набранные очки
     int gdx, gdy; // Координаты квадрата
@@ -23,6 +24,7 @@ protected:
     int wax ,way; // Размеры окна нашей программы
     bool singling; // Для выделение области, если true то рисуем прямоугольник по координатам cax, cay, cbx, cby
     void self_cursor(); // метод для рисования своего курсора
+    */
     void initializeGL(); // Метод для инициализирования opengl
     void resizeGL(int nWidth, int nHeight); // Метод вызываемый после каждого изменения размера окна
     void paintGL(); // Метод для вывода изображения на экран

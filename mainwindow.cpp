@@ -4,10 +4,10 @@ MaxFlowVisualizer::MaxFlowVisualizer(QWidget* parent) : QGLWidget(parent)
 {
     addVertex(10, 10);
     addVertex(10, 100);
-    point=0;
+    /*point=0;
     geese_size=30;
     wax=600; way=600; // начальный размер окна
-    singling=false;
+    singling=false;*/
     setFormat(QGLFormat(QGL::DoubleBuffer)); // Двойная буферизация
     glDepthFunc(GL_LEQUAL); // Буфер глубины
     /*QTimer *timer = new QTimer(this);
@@ -30,8 +30,8 @@ void MaxFlowVisualizer::resizeGL(int nWidth, int nHeight)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, (GLint)nWidth, (GLint)nHeight);
-    wax = nWidth;
-    way = nHeight;
+    /*wax = nWidth;
+    way = nHeight;*/
 }
 
 void MaxFlowVisualizer::paintGL()
@@ -39,7 +39,7 @@ void MaxFlowVisualizer::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // чистим буфер изображения и буфер глубины
     glMatrixMode(GL_PROJECTION); // устанавливаем матрицу
     glLoadIdentity(); // загружаем матрицу
-    glOrtho(0,wax,way,0,1,0); // подготавливаем плоскости для матрицы
+    //glOrtho(0,wax,way,0,1,0); // подготавливаем плоскости для матрицы
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -111,9 +111,9 @@ void MaxFlowVisualizer::drawCircle(GLdouble coordX, GLdouble coordY)
         glColor3f(0,0,0);
         int sides = 36;
         double radius = 10;
-        for (int a = 0; a < 360; a += 360 / sides)
+        for (int angle = 0; angle < 360; angle += 360 / sides)
           {
-            double heading = a * 3.1415926535897932384626433832795 / 180;
+            double heading = angle * 3.1415926535897932384626433832795 / 180;
             glVertex2d(cos(heading) * radius + coordX, sin(heading) * radius + coordY);
           }
     glEnd();
