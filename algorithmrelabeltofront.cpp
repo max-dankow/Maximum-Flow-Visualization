@@ -2,32 +2,39 @@
 
 void AlgorithmRelabelToFront::initializePreflow()
 {
+  //инициализируем Высоту и Избыточный Поток всех вершин
     for (VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
         verticesExcessFlow[vertex] = 0;
         verticesHeight[vertex] = 0;
     }
+  //перебираем все вершины
     for (VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
         std::list<Edge>& edges = network.getEdgesListFromVertex(vertex);
+      //перебираем все ребра, исходящие из из очередной вершины
         for (auto edgesIt = edges.begin(); edgesIt != edges.end(); ++edgesIt)
-        {
-            if (vertex == network.getSourceIndex())
+        {  
+            if (edgesIt->getCapacity() == 0)
             {
-                network.setEdgeFlow(*edgesIt, (Edge(*edgesIt)).getCapacity());
-                verticesExcessFlow[edgesIt->getSecondVertexIndex()] += (Edge(*edgesIt)).getCapacity();
-                if (network.hasEdge(edgesIt->getSecondVertexIndex(), edgesIt->getFirstVertexIndex()))
-                {
-                    network.setEdgeFlow(network.getEdge(edgesIt->getSecondVertexIndex(),
-                                                        edgesIt->getFirstVertexIndex()),
-                                        -(Edge(*edgesIt)).getCapacity());
-                    verticesExcessFlow[vertex] -= (Edge(*edgesIt)).getCapacity();
-                }
+                continue;
+            }
+          //если это ребро исходит из истока, то
+            if (vertex == network.getSourceIndex())
+            {  
+              //пропускаем по ребру максимальный допустимый поток и соответсвенно меняем избыток
+                network.setEdgeFlow(*edgesIt, edgesIt->getCapacity());
+                verticesExcessFlow[edgesIt->getSecondVertexIndex()] += edgesIt->getCapacity();
+                verticesExcessFlow[vertex] -= edgesIt->getCapacity();
             }
             else
             {
                 network.setEdgeFlow(*edgesIt, 0);
             }
+            network.setEdgeFlow(network.getEdge(edgesIt->getSecondVertexIndex(),
+                                                edgesIt->getFirstVertexIndex(),
+                                                0),
+                                -edgesIt->getFlow());
         }
     }
     verticesHeight[network.getSourceIndex()] = network.getVerticesNumber();
@@ -77,7 +84,7 @@ void AlgorithmRelabelToFront::relabelVertex(VertexIndex vertex)
     for (Edge adjacentEdge: network.getEdgesListFromVertex(vertex))
     {
         if (adjacentEdge.getCapacity() - adjacentEdge.getFlow() > 0
-                && (minHeigth == -1 || verticesHeight[adjacentEdge.getSecondVertexIndex()]))
+                && (minHeigth == -1 || verticesHeight[adjacentEdge.getSecondVertexIndex()] < minHeigth))
         {
             minHeigth = verticesHeight[adjacentEdge.getSecondVertexIndex()];
         }
@@ -95,9 +102,9 @@ void AlgorithmRelabelToFront::pushExcessFlow(Edge& edge)
     //    f(u, v) += d;
     network.addEdgeFlow(edge, deltaFlow);
     //    f(v, u) = -f(u, v);
-    if (network.hasEdge(vertexTo, vertexFrom))
+    if (network.hasEdge(vertexTo, vertexFrom, 0))
     {
-        network.setEdgeFlow(network.getEdge(vertexTo, vertexFrom), -edge.getFlow());
+        network.setEdgeFlow(network.getEdge(vertexTo, vertexFrom, 0), -edge.getFlow());
     }
     //    e(u) -= d;
     verticesExcessFlow[vertexFrom] -= deltaFlow;
@@ -118,7 +125,7 @@ void AlgorithmRelabelToFront::dischargeVertex(VertexIndex vertex)
         else
         {
             if ((adjacentEdge->getCapacity() - adjacentEdge->getFlow() > 0)
-                    && (verticesHeight[vertex] == verticesHeight[adjacentEdge->getSecondVertexIndex()]))
+                    && (verticesHeight[vertex] == verticesHeight[adjacentEdge->getSecondVertexIndex()] + 1))
             {
                 pushExcessFlow(*adjacentEdge);
             }

@@ -8,7 +8,7 @@
 #include <algorithm>
 
 typedef size_t VertexIndex;
-typedef double FlowType;
+typedef long FlowType;
 
 struct Edge
 {
@@ -25,7 +25,8 @@ struct Edge
     bool operator ==(const Edge &other) const
     {
         return (firstVertexIndex == other.firstVertexIndex) &&
-               (secondVertexIndex == other.secondVertexIndex);
+               (secondVertexIndex == other.secondVertexIndex) &&
+               (capacity == other.capacity);
     }
 
     VertexIndex firstVertexIndex, secondVertexIndex;
@@ -49,8 +50,8 @@ public:
     Network(size_t verticesNumber, VertexIndex sourceIndex, VertexIndex sinkIndex);
     Network();
     void addEdge(const Edge &newEdge);
-    bool hasEdge(VertexIndex firstVertexIndex, VertexIndex secondVertexIndex);
-    Edge &getEdge(VertexIndex firstVertexIndex, VertexIndex secondVertexIndex);
+    bool hasEdge(VertexIndex firstVertexIndex, VertexIndex secondVertexIndex, FlowType capacity);
+    Edge &getEdge(VertexIndex firstVertexIndex, VertexIndex secondVertexIndex, FlowType capacity);
     size_t getVerticesNumber() const;
     FlowType getEdgeFlowAmount(VertexIndex vertexFrom, VertexIndex vertexTo) const;
     FlowType getNetworkFlowAmount() const;
@@ -59,7 +60,7 @@ public:
     void addEdgeFlow(Edge& edge, FlowType deltaFlow);
     void setEdgeFlow(std::list<Edge>::iterator edge, FlowType newFlowValue);
     void setEdgeFlow(Edge& edge, FlowType newFlowValue);
-    void setEdgeFlow(VertexIndex vertexFrom, VertexIndex vertexTo, FlowType newFlowValue);
+    void setEdgeFlow(VertexIndex vertexFrom, VertexIndex vertexTo, FlowType capacity, FlowType newFlowValue);
     VertexIndex getSourceIndex() const;
     //void setSourceIndex(const VertexIndex &value);
     VertexIndex getSinkIndex() const;

@@ -14,6 +14,7 @@ Network readInput()
         FlowType capacity;
         std::cin >> firstVertex >> secondVertex >> capacity;
         inputNetwork.addEdge(Edge(firstVertex - 1, secondVertex - 1, 1, capacity, 0));
+        inputNetwork.addEdge(Edge(secondVertex - 1, firstVertex - 1, 1, 0, 0));
     }
     return inputNetwork;
 }

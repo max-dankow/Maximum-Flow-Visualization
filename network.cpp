@@ -12,18 +12,18 @@ void Network::addEdge(const Edge &newEdge)
     edgesList[newEdge.firstVertexIndex].push_back(newEdge);
 }
 
-bool Network::hasEdge(VertexIndex firstVertexIndex, VertexIndex secondVertexIndex)
+bool Network::hasEdge(VertexIndex firstVertexIndex, VertexIndex secondVertexIndex, FlowType capacity)
 {
     assert(firstVertexIndex < verticesNumber && secondVertexIndex < verticesNumber);
-    Edge edgeToFind(firstVertexIndex, secondVertexIndex, 0, 0, 0);
+    Edge edgeToFind(firstVertexIndex, secondVertexIndex, 0, capacity, 0);
     std::list<Edge>::iterator searchResultIt = find(edgesList[firstVertexIndex].begin(), edgesList[firstVertexIndex].end(), edgeToFind);
     return searchResultIt != edgesList[firstVertexIndex].end();
 }
 
-Edge& Network::getEdge(VertexIndex firstVertexIndex, VertexIndex secondVertexIndex)
+Edge& Network::getEdge(VertexIndex firstVertexIndex, VertexIndex secondVertexIndex, FlowType capacity)
 {
     assert(firstVertexIndex < verticesNumber && secondVertexIndex < verticesNumber);
-    Edge edgeToFind(firstVertexIndex, secondVertexIndex, 0, 0, 0);
+    Edge edgeToFind(firstVertexIndex, secondVertexIndex, 0, capacity, 0);
     std::list<Edge>::iterator searchResultIt = find(edgesList[firstVertexIndex].begin(), edgesList[firstVertexIndex].end(), edgeToFind);
     assert(searchResultIt != edgesList[firstVertexIndex].end());
     return *searchResultIt;
@@ -55,32 +55,19 @@ void Network::setEdgeFlow(Edge &edge, FlowType newFlowValue)
     edge.setFlow(newFlowValue);
 }
 
-void Network::setEdgeFlow(VertexIndex vertexFrom, VertexIndex vertexTo, FlowType newFlowValue)
+void Network::setEdgeFlow(VertexIndex vertexFrom, VertexIndex vertexTo, FlowType capacity, FlowType newFlowValue)
 {
-    setEdgeFlow(getEdge(vertexFrom, vertexTo), newFlowValue);
+    setEdgeFlow(getEdge(vertexFrom, vertexTo, capacity), newFlowValue);
 }
 VertexIndex Network::getSourceIndex() const
 {
     return sourceIndex;
 }
-/*
-void Network::setSourceIndex(const VertexIndex &value)
-{
-    sourceIndex = value;
-}*/
+
 VertexIndex Network::getSinkIndex() const
 {
     return sinkIndex;
 }
-/*
-void Network::setSinkIndex(const VertexIndex &value)
-{
-    sinkIndex = value;
-}
-
-
-*/
-
 
 FlowType Edge::getFlow() const
 {
