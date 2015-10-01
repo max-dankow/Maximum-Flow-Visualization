@@ -10,7 +10,6 @@
 class MaxFlowVisualizer : public QGLWidget
 {
     Q_OBJECT
-
 public:
     MaxFlowVisualizer(QWidget *parent = 0);
     void addVertex(GLdouble coordX, GLdouble coordY);

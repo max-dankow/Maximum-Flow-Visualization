@@ -20,10 +20,16 @@ Network readInput()
 
 int main(int argc, char *argv[])
 {
+    freopen("input.txt", "r", stdin);
+    Network inputNetwork = readInput();
+    AlgorithmRelabelToFront maxFlowSolver(inputNetwork);
+    maxFlowSolver.calculateMaxFlow();
+
     //readInput();
+    /*
     QApplication a(argc, argv);
     MaxFlowVisualizer mainWindow;
     mainWindow.show();
 
-    return a.exec();
+    return a.exec();*/
 }

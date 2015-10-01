@@ -5,10 +5,15 @@
 #include <vector>
 #include "network.h"
 
-class algorithmRelabelToFront
+class AlgorithmRelabelToFront
 {
 public:
-    algorithmRelabelToFront(Network network):network(network){}
+    AlgorithmRelabelToFront(const Network &network):network(network)
+    {
+        verticesExcessFlow.assign(network.getVerticesNumber(), 0);
+        verticesHeight.assign(network.getVerticesNumber(), 0);
+        currentAdjacentEdges.reserve(network.getVerticesNumber());
+    }
     void initializePreflow();
     void calculateMaxFlow();
 private:
