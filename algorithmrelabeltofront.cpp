@@ -74,6 +74,7 @@ FlowType AlgorithmRelabelToFront::calculateMaxFlow()
         }
         ++currentVertexIt;
     }
+    assert(network.getNetworkFlowAmount() == verticesExcessFlow[network.getSinkIndex()]);
     return network.getNetworkFlowAmount();
 }
 
@@ -101,7 +102,11 @@ void AlgorithmRelabelToFront::pushExcessFlow(Edge& edge)
   //todo: find out what is necessary to do with a back edge
     if (edge.capacity != 0)
     {
-        network.addEdgeFlow(network.getEdge(vertexTo, vertexFrom, 0), -edge.getFlow());
+        network.addEdgeFlow(network.getEdge(vertexTo, vertexFrom, 0), -deltaFlow);
+    }
+    else
+    {
+        network.addEdgeFlow(network.getEdge(vertexTo, vertexFrom, 1), -deltaFlow);
     }
     verticesExcessFlow[vertexFrom] -= deltaFlow;
     verticesExcessFlow[vertexTo] += deltaFlow;

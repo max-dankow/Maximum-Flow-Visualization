@@ -26,7 +26,7 @@ struct Edge
     {
         return (firstVertexIndex == other.firstVertexIndex) &&
                (secondVertexIndex == other.secondVertexIndex) &&
-               (capacity == other.capacity);
+               (((capacity == 0 && other.capacity == 0) || (capacity != 0 && other.capacity != 0)));
     }
 
     VertexIndex firstVertexIndex, secondVertexIndex;
