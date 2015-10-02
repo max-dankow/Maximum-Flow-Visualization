@@ -1,6 +1,8 @@
 #include <QApplication>
+#include <QtCore>
+#include <QtGui>
 #include <iostream>
-#include "mainwindow.h"
+//#include "mainwindow.h"
 #include "algorithmrelabeltofront.h"
 
 Network readInput()
@@ -19,17 +21,17 @@ Network readInput()
     return inputNetwork;
 }
 
-int main(/*int argc, char *argv[]*/)
+int main(int argc, char *argv[])
 {
     freopen("input.txt", "r", stdin);
     Network inputNetwork = readInput();
     AlgorithmRelabelToFront maxFlowSolver(inputNetwork);
     std::cout << maxFlowSolver.calculateMaxFlow() << "\n";
-    //readInput();
-    /*
-    QApplication a(argc, argv);
-    MaxFlowVisualizer mainWindow;
-    mainWindow.show();
 
-    return a.exec();*/
+    QApplication a(argc, argv);
+    //QGraphicsView w;
+    //MaxFlowVisualizer mainWindow;
+    //mainWindow.show();
+
+    return a.exec();
 }

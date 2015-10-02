@@ -20,6 +20,11 @@ void MaxFlowVisualizer::addVertex(GLdouble coordX, GLdouble coordY)
     vertecies.push_back(CVertexGL(coordX, coordY));
 }
 
+void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
+{
+    QPainter painter(this);
+}
+
 void MaxFlowVisualizer::initializeGL()
 {
     qglClearColor(Qt::white);

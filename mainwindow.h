@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QtCore>
+#include <QtGui>
 #include <QGLWidget>
 #include <QtOpenGL>
 #include "cvisablevertex.h"
@@ -14,8 +16,8 @@ public:
     MaxFlowVisualizer(QWidget *parent = 0);
     void addVertex(GLdouble coordX, GLdouble coordY);
 protected:
-
-    std::vector<CVertexGL> vertecies;
+    void paintEvent(QPaintEvent *e);
+    /*std::vector<CVertexGL> vertecies;
     /*
     int geese_size; // Сторона квадрата
     int point; // набранные очки
@@ -24,7 +26,7 @@ protected:
     int wax ,way; // Размеры окна нашей программы
     bool singling; // Для выделение области, если true то рисуем прямоугольник по координатам cax, cay, cbx, cby
     void self_cursor(); // метод для рисования своего курсора
-    */
+
     void initializeGL(); // Метод для инициализирования opengl
     void resizeGL(int nWidth, int nHeight); // Метод вызываемый после каждого изменения размера окна
     void paintGL(); // Метод для вывода изображения на экран
@@ -33,7 +35,7 @@ protected:
     void mousePressEvent(QMouseEvent *me); // Реагирует на нажатие кнопок мыши
     void mouseReleaseEvent(QMouseEvent *me); // Метод реагирует на "отжатие" кнопки мыши
     void drawCircle(GLdouble coordX, GLdouble coordY); // Рисуем квадрат по которому кликать для получения очков
-    void drawAll();
+    void drawAll();*/
 };
 
 #endif // MAINWINDOW_H
