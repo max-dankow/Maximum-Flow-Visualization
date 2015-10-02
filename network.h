@@ -8,7 +8,7 @@
 #include <algorithm>
 
 typedef size_t VertexIndex;
-typedef long FlowType;
+typedef long long FlowType;
 
 struct Edge
 {
