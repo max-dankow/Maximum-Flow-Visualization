@@ -19,13 +19,12 @@ Network readInput()
     return inputNetwork;
 }
 
-int main(int argc, char *argv[])
+int main(/*int argc, char *argv[]*/)
 {
     freopen("input.txt", "r", stdin);
     Network inputNetwork = readInput();
     AlgorithmRelabelToFront maxFlowSolver(inputNetwork);
-    maxFlowSolver.calculateMaxFlow();
-
+    std::cout << maxFlowSolver.calculateMaxFlow() << "\n";
     //readInput();
     /*
     QApplication a(argc, argv);

@@ -14,6 +14,7 @@ public:
     MaxFlowVisualizer(QWidget *parent = 0);
     void addVertex(GLdouble coordX, GLdouble coordY);
 protected:
+
     std::vector<CVertexGL> vertecies;
     /*
     int geese_size; // Сторона квадрата

@@ -40,7 +40,7 @@ void AlgorithmRelabelToFront::initializePreflow()
     verticesHeight[network.getSourceIndex()] = network.getVerticesNumber();
 }
 
-void AlgorithmRelabelToFront::calculateMaxFlow()
+FlowType AlgorithmRelabelToFront::calculateMaxFlow()
 {
     //инициализируем предпоток
     initializePreflow();
@@ -56,11 +56,9 @@ void AlgorithmRelabelToFront::calculateMaxFlow()
     //проинициализируем указатели current каждой вершины current[u] = 1;
     for(VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
-        currentAdjacentEdges.push_back(network.getEdgesListFromVertex(vertex).begin());
+        currentAdjacentEdge.push_back(network.getEdgesListFromVertex(vertex).begin());
     }
-    //начиная с первой вершины в списке
     auto currentVertexIt = verticesList.begin();
-    //пока не null
     while (currentVertexIt != verticesList.end())
     {
         long oldHeight = verticesHeight[*currentVertexIt];
@@ -76,6 +74,7 @@ void AlgorithmRelabelToFront::calculateMaxFlow()
         }
         ++currentVertexIt;
     }
+    return network.getNetworkFlowAmount();
 }
 
 void AlgorithmRelabelToFront::relabelVertex(VertexIndex vertex)
@@ -97,18 +96,14 @@ void AlgorithmRelabelToFront::pushExcessFlow(Edge& edge)
 {
     VertexIndex vertexFrom = edge.getFirstVertexIndex();
     VertexIndex vertexTo = edge.getSecondVertexIndex();
-    //d = min(e(u), c(u, v) - f(u, v));
     FlowType deltaFlow = std::min(verticesExcessFlow[vertexFrom], edge.getCapacity() - edge.getFlow());
-    //    f(u, v) += d;
     network.addEdgeFlow(edge, deltaFlow);
-    //    f(v, u) = -f(u, v);
-    if (network.hasEdge(vertexTo, vertexFrom, 0))
+  //todo: find out what is necessary to do with a back edge
+    if (edge.capacity != 0)
     {
-        network.setEdgeFlow(network.getEdge(vertexTo, vertexFrom, 0), -edge.getFlow());
+        network.addEdgeFlow(network.getEdge(vertexTo, vertexFrom, 0), -edge.getFlow());
     }
-    //    e(u) -= d;
     verticesExcessFlow[vertexFrom] -= deltaFlow;
-    //    e(v) += d;
     verticesExcessFlow[vertexTo] += deltaFlow;
 }
 
@@ -116,11 +111,11 @@ void AlgorithmRelabelToFront::dischargeVertex(VertexIndex vertex)
 {
     while (verticesExcessFlow[vertex] > 0)
     {
-        auto adjacentEdge = currentAdjacentEdges[vertex];
+        auto adjacentEdge = currentAdjacentEdge[vertex];
         if (adjacentEdge == network.getEdgesListFromVertex(vertex).end())
         {
             relabelVertex(vertex);
-            currentAdjacentEdges[vertex] = network.getEdgesListFromVertex(vertex).begin();
+            currentAdjacentEdge[vertex] = network.getEdgesListFromVertex(vertex).begin();
         }
         else
         {
@@ -131,7 +126,7 @@ void AlgorithmRelabelToFront::dischargeVertex(VertexIndex vertex)
             }
             else
             {
-                ++currentAdjacentEdges[vertex];
+                ++currentAdjacentEdge[vertex];
             }
         }
     }

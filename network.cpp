@@ -34,6 +34,16 @@ size_t Network::getVerticesNumber() const
     return verticesNumber;
 }
 
+FlowType Network::getNetworkFlowAmount() const
+{
+    FlowType flowSum = 0;
+    for (Edge edge : edgesList[sourceIndex])
+    {
+        flowSum += edge.getFlow();
+    }
+    return flowSum;
+}
+
 std::list<Edge> &Network::getEdgesListFromVertex(VertexIndex vertex)
 {
     assert(vertex < verticesNumber);

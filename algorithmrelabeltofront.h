@@ -12,15 +12,15 @@ public:
     {
         verticesExcessFlow.assign(network.getVerticesNumber(), 0);
         verticesHeight.assign(network.getVerticesNumber(), 0);
-        currentAdjacentEdges.reserve(network.getVerticesNumber());
+        currentAdjacentEdge.reserve(network.getVerticesNumber());
     }
-    void initializePreflow();
-    void calculateMaxFlow();
+    FlowType calculateMaxFlow();
 private:
     Network network;
     std::vector<long> verticesHeight;
     std::vector<FlowType> verticesExcessFlow;
-    std::vector<std::list<Edge>::iterator> currentAdjacentEdges;
+    std::vector<std::list<Edge>::iterator> currentAdjacentEdge;
+    void initializePreflow();
     void relabelVertex(VertexIndex vertex);
     void pushExcessFlow(Edge& edge);
     void dischargeVertex(VertexIndex vertex);

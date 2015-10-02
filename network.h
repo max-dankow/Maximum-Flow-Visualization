@@ -62,9 +62,7 @@ public:
     void setEdgeFlow(Edge& edge, FlowType newFlowValue);
     void setEdgeFlow(VertexIndex vertexFrom, VertexIndex vertexTo, FlowType capacity, FlowType newFlowValue);
     VertexIndex getSourceIndex() const;
-    //void setSourceIndex(const VertexIndex &value);
     VertexIndex getSinkIndex() const;
-    //void setSinkIndex(const VertexIndex &value);
 private:
     size_t verticesNumber;
     VertexIndex sourceIndex, sinkIndex;
