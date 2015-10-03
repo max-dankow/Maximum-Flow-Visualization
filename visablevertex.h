@@ -5,15 +5,18 @@
 class VisableVertex
 {
 public:
-    VisableVertex(GLdouble coordX = 0, GLdouble coordY = 0):
-        coordX(coordX), coordY(coordY){}
-    GLdouble getCoordY() const;
-    void setCoordY(GLdouble value);
-    GLdouble getCoordX() const;
-    void setCoordX(GLdouble value);
+    VisableVertex(long centerCoordX = 0, long centerCoordY = 0, long radius = DEFAULT_VERTEX_RADIUS):
+        centerCoordX(centerCoordX), centerCoordY(centerCoordY), radius(radius){}
+    long getCenterCoordY() const;
+    void setCenterCoordY(long value);
+    long getCenterCoordX() const;
+    void setCenterCoordX(long value);
+    long getRadius() const;
+    void setRadius(long value);
 
 private:
-    GLdouble coordX, coordY;
+    static const int DEFAULT_VERTEX_RADIUS = 15;
+    long centerCoordX, centerCoordY, radius;
 };
 
 #endif // VISABLEVERTEX_H

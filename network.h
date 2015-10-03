@@ -30,11 +30,6 @@ struct Edge
                (((capacity == 0 && other.capacity == 0) || (capacity != 0 && other.capacity != 0)));
     }
 
-    VertexIndex firstVertexIndex, secondVertexIndex;
-    double weight;
-    FlowType capacity, flow;
-
-public:
     FlowType getCapacity() const;
     void setCapacity(const FlowType &value);
     FlowType getFlow() const;
@@ -43,6 +38,10 @@ public:
     void setFirstVertexIndex(const size_t &value);
     VertexIndex getSecondVertexIndex() const;
     void setSecondVertexIndex(const size_t &value);
+
+    VertexIndex firstVertexIndex, secondVertexIndex;
+    double weight;
+    FlowType capacity, flow;
 };
 
 class Network

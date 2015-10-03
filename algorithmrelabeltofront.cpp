@@ -77,10 +77,11 @@ FlowType AlgorithmRelabelToFront::calculateMaxFlow()
     assert(network.getNetworkFlowAmount() == verticesExcessFlow[network.getSinkIndex()]);
     return network.getNetworkFlowAmount();
 }
-const Network &AlgorithmRelabelToFront::getNetwork() const
+Network &AlgorithmRelabelToFront::getNetwork()
 {
     return network;
 }
+
 
 void AlgorithmRelabelToFront::relabelVertex(VertexIndex vertex)
 {
@@ -104,7 +105,7 @@ void AlgorithmRelabelToFront::pushExcessFlow(Edge& edge)
     FlowType deltaFlow = std::min(verticesExcessFlow[vertexFrom], edge.getCapacity() - edge.getFlow());
     network.addEdgeFlow(edge, deltaFlow);
   //todo: find out what is necessary to do with a back edge
-    if (edge.capacity != 0)
+    if (edge.getCapacity() != 0)
     {
         network.addEdgeFlow(network.getEdge(vertexTo, vertexFrom, 0), -deltaFlow);
     }

@@ -16,7 +16,7 @@ public:
     }
     AlgorithmRelabelToFront();
     FlowType calculateMaxFlow();
-    const Network& getNetwork() const;
+    Network &getNetwork();
 
 private:
     Network network;

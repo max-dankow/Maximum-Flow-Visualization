@@ -1,20 +1,30 @@
 #include "visablevertex.h"
 
-GLdouble VisableVertex::getCoordY() const
+long VisableVertex::getCenterCoordY() const
 {
-    return coordY;
+    return centerCoordY;
 }
 
-void VisableVertex::setCoordY(GLdouble value)
+void VisableVertex::setCenterCoordY(long value)
 {
-    coordY = value;
+    centerCoordY = value;
 }
-GLdouble VisableVertex::getCoordX() const
+long VisableVertex::getCenterCoordX() const
 {
-    return coordX;
+    return centerCoordX;
 }
 
-void VisableVertex::setCoordX(GLdouble value)
+void VisableVertex::setCenterCoordX(long value)
 {
-    coordX = value;
+    centerCoordX = value;
+}
+
+long VisableVertex::getRadius() const
+{
+    return radius;
+}
+
+void VisableVertex::setRadius(long value)
+{
+    radius = value;
 }
