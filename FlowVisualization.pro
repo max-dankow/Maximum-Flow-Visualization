@@ -13,12 +13,13 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    cvisablevertex.cpp \
     algorithmrelabeltofront.cpp \
-    network.cpp
+    network.cpp \
+    visablevertex.cpp \
+    maxflowvisualizer.cpp
 
-HEADERS  += mainwindow.h \
-    cvisablevertex.h \
+HEADERS  += \
     algorithmrelabeltofront.h \
-    network.h
+    network.h \
+    visablevertex.h \
+    maxflowvisualizer.h

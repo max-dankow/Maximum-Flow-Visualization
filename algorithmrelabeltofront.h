@@ -14,7 +14,10 @@ public:
         verticesHeight.assign(network.getVerticesNumber(), 0);
         currentAdjacentEdge.reserve(network.getVerticesNumber());
     }
+    AlgorithmRelabelToFront();
     FlowType calculateMaxFlow();
+    const Network& getNetwork() const;
+
 private:
     Network network;
     std::vector<long> verticesHeight;

@@ -2,7 +2,7 @@
 #include <QtCore>
 #include <QtGui>
 #include <iostream>
-//#include "mainwindow.h"
+#include "maxflowvisualizer.h"
 #include "algorithmrelabeltofront.h"
 
 Network readInput()
@@ -29,9 +29,8 @@ int main(int argc, char *argv[])
     std::cout << maxFlowSolver.calculateMaxFlow() << "\n";
 
     QApplication a(argc, argv);
-    //QGraphicsView w;
-    //MaxFlowVisualizer mainWindow;
-    //mainWindow.show();
+    MaxFlowVisualizer mainWindow(inputNetwork);
+    mainWindow.show();
 
     return a.exec();
 }

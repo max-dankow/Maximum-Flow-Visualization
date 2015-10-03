@@ -77,6 +77,10 @@ FlowType AlgorithmRelabelToFront::calculateMaxFlow()
     assert(network.getNetworkFlowAmount() == verticesExcessFlow[network.getSinkIndex()]);
     return network.getNetworkFlowAmount();
 }
+const Network &AlgorithmRelabelToFront::getNetwork() const
+{
+    return network;
+}
 
 void AlgorithmRelabelToFront::relabelVertex(VertexIndex vertex)
 {

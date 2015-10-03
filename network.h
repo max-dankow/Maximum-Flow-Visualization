@@ -10,6 +10,7 @@
 typedef size_t VertexIndex;
 typedef long long FlowType;
 
+// todo: add special tag for back edges with 0 capacity, or to comment operator== construction
 struct Edge
 {
     Edge(VertexIndex newFirstVertex, VertexIndex newSecondVertex,
