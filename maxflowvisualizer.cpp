@@ -5,7 +5,7 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
 {
     animationTimer = new QTimer(this);
     connect(animationTimer, SIGNAL(timeout()), this, SLOT(animationStep()));
-    resize(900, 600);
+    setWindowState(Qt::WindowMaximized);
     verteciesList.resize(relabelToFrontAlgo.getNetwork().getVerticesNumber());
     std::default_random_engine randomGenerator;
     std::uniform_int_distribution<int> xCoordRandom(200, width() - 10);
@@ -28,15 +28,28 @@ void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
     showVertecies(painter);
     painter.drawText(width()-10, height()-10, (std::to_string(verteciesList.size())).c_str());
 }
-/*
+
 void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
 {
+    QWidget::keyPressEvent(event);
     if (event->key() == Qt::Key_Right)
     {
         networkPlacer.doStep(verteciesList);
         update();
     }
-}*/
+}
+
+void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *e)
+{
+  QWidget::mouseDoubleClickEvent(e);
+  if(isFullScreen())
+  {
+     setWindowState(Qt::WindowMaximized);
+  } else
+  {
+     setWindowState(Qt::WindowFullScreen);
+  }
+}
 
 void MaxFlowVisualizer::showVertecies(QPainter &painter)
 {
@@ -74,7 +87,6 @@ void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painte
 
 void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
 {
-    // todo: use capacity and flow info to improve quality of the visualization
     QPen pen1(Qt::black);
     painter.setBrush(QBrush(Qt::lightGray));
     pen1.setWidth(3);

@@ -1,18 +1,19 @@
 #include "forcedirectedgraphdrawing.h"
 #include <iostream>
 
-const double DEFAULT_SPRING_PARAMETER = 1;
+const double DEFAULT_SPRING_PARAMETER = 0.5;
 const double DEFAULT_COULOMB_PARAMETER = 500;
 const double DEFAULT_TIME_DELTA = 5;
-const double DEFAULT_SPRING_LENGTH = 150;
-const double STOP_FORCE_MODULE = 0.1;
+const double DEFAULT_SPRING_LENGTH = 100;
+const double STOP_FORCE_MODULE = 0.12;
 
 void ForceDirectedNetworkDrawing::placeVertecies(std::vector<VisableVertex> &vertecies)
 {
-    while (isNetworkStable())
+    int iterationCounter = 0;
+    while (!doStep(vertecies) && iterationCounter < 10000)
     {
-        doStep(vertecies);
-    }
+        ++iterationCounter;
+    };
 }
 
 bool ForceDirectedNetworkDrawing::doStep(std::vector<VisableVertex> &vertecies)
@@ -51,7 +52,7 @@ bool ForceDirectedNetworkDrawing::doStep(std::vector<VisableVertex> &vertecies)
         maxForceModule += forces[vertex].getLength();
         vertecies[vertex].move(timeDelta * forces[vertex].xComponent,timeDelta * forces[vertex].yComponent);
     }
-    std::cout << maxForceModule << "\n";
+    //std::cout << maxForceModule << "\n";
     return maxForceModule < STOP_FORCE_MODULE;
 }
 
@@ -74,10 +75,4 @@ ForceVector ForceDirectedNetworkDrawing::calculateCoulombForce
     ForceVector deltaVector = firstVector - secondVector;
     double coulombForceModule = coulombParameter / (pow(deltaVector.getLength(), 2.0));
     return deltaVector.getNormalVector() * coulombForceModule;
-}
-
-bool ForceDirectedNetworkDrawing::isNetworkStable()
-{
-    // todo: checking by kinetic energy sum
-    return false;
 }

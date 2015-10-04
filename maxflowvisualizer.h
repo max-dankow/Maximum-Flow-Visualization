@@ -25,7 +25,8 @@ public:
     MaxFlowVisualizer(Network network, QWidget *parent = 0);
 protected:
     void paintEvent(QPaintEvent *e);
-    //void keyPressEvent(QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *event);
+    void mouseDoubleClickEvent(QMouseEvent *e);
 private:
     const int ANIMATION_STEP_DELAY_MS = 5;
     States state;

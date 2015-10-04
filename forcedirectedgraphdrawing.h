@@ -28,7 +28,6 @@ private:
     double springParameter, normalSpringLength, coulombParameter, timeDelta;
     ForceVector calculateSpringForce(double firstVertexX, double firstVertexY, double secondVertexX, double secondVertexY) const;
     ForceVector calculateCoulombForce(double firstVertexX, double firstVertexY, double secondVertexX, double secondVertexY) const;
-    bool isNetworkStable();
 };
 
 #endif // FORCEDIRECTEDGRAPHDRAWING_H
