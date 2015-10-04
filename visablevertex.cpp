@@ -13,7 +13,15 @@ long VisableVertex::getCenterCoordX() const
 
 void VisableVertex::move(double deltaX, double deltaY)
 {
+    if (centerCoordX + deltaX < xMinimumLimit || centerCoordX + deltaX > xMaximumLimit)
+    {
+        deltaX *= -1;
+    }
     centerCoordX += deltaX;
+    if (centerCoordY + deltaY < yMinimumLimit || centerCoordY + deltaY > yMaximumLimit)
+    {
+        deltaY *= -1;
+    }
     centerCoordY += deltaY;
 }
 

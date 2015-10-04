@@ -27,6 +27,7 @@ protected:
     void paintEvent(QPaintEvent *e);
     void keyPressEvent(QKeyEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *e);
+    void mainFunction();
 private:
     const int ANIMATION_STEP_DELAY_MS = 5;
     States state;

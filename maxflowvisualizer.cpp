@@ -1,28 +1,36 @@
 #include "maxflowvisualizer.h"
+#include <QDesktopWidget>
+#include <QApplication>
 #include <string>
 MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     : QGLWidget(parent), relabelToFrontAlgo(network), networkPlacer(network)
 {
     animationTimer = new QTimer(this);
     connect(animationTimer, SIGNAL(timeout()), this, SLOT(animationStep()));
-    setWindowState(Qt::WindowMaximized);
+    setWindowState(Qt::WindowFullScreen);
+    QApplication::desktop()->screenGeometry();
+    QRect screen = QApplication::desktop()->screenGeometry();
+    resize(screen.width(), screen.height());
     verteciesList.resize(relabelToFrontAlgo.getNetwork().getVerticesNumber());
     std::default_random_engine randomGenerator;
-    std::uniform_int_distribution<int> xCoordRandom(200, width() - 10);
-    std::uniform_int_distribution<int> yCoordRandom(200, height() - 10);
+    std::uniform_int_distribution<int> xCoordRandom(15, width() - 15);
+    std::uniform_int_distribution<int> yCoordRandom(15, height() - 15);
     for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex)
     {
         int newCoordX = xCoordRandom(randomGenerator);
         int newCoordY = yCoordRandom(randomGenerator);
-        verteciesList[vertex] = VisableVertex(newCoordX, newCoordY);
+        int newRadius = VisableVertex::DEFAULT_VERTEX_RADIUS;
+        verteciesList[vertex] = VisableVertex(newCoordX, newCoordY, newRadius,
+                                              newRadius, width() - newRadius,
+                                              newRadius, height() - newRadius);
     }
     animationTimer->start(ANIMATION_STEP_DELAY_MS);
     state = Planarization;
+    //mainFunction();
 }
 
 void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
 {
-    // todo: show current network state
     QPainter painter(this);
     showEdges(painter);
     showVertecies(painter);
@@ -49,6 +57,16 @@ void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *e)
   {
      setWindowState(Qt::WindowFullScreen);
   }
+}
+
+void MaxFlowVisualizer::mainFunction()
+{
+    int iterationCounter = 0;
+    while (!networkPlacer.doStep(verteciesList) && iterationCounter < 10000)
+    {
+        ++iterationCounter;
+        update();
+    };
 }
 
 void MaxFlowVisualizer::showVertecies(QPainter &painter)
@@ -119,9 +137,12 @@ void MaxFlowVisualizer::animationStep()
 {
     switch (state) {
     case Planarization:
-        if (networkPlacer.doStep(verteciesList))
+        for (int i = 0; i < 10; ++i)
         {
-            state = Scaling;
+            if (networkPlacer.doStep(verteciesList))
+            {
+                state = Scaling;
+            }
         }
         break;
     default:

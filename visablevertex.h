@@ -16,18 +16,21 @@ struct ForceVector{
 class VisableVertex
 {
 public:
-    VisableVertex(long centerCoordX = 0, long centerCoordY = 0, long radius = DEFAULT_VERTEX_RADIUS):
-        centerCoordX(centerCoordX), centerCoordY(centerCoordY), radius(radius){}
+    static const int DEFAULT_VERTEX_RADIUS = 15;
+    VisableVertex(long centerCoordX, long centerCoordY, long radius, long xMinimumLimit,
+                  long xMaximumLimit, long yMinimumLimit, long yMaximumLimit):
+        centerCoordX(centerCoordX), centerCoordY(centerCoordY), radius(radius),
+        xMinimumLimit (xMinimumLimit), xMaximumLimit (xMaximumLimit),
+        yMinimumLimit(yMinimumLimit), yMaximumLimit(yMaximumLimit){}
+    VisableVertex(){}
     long getCenterCoordY() const;
-    //void setCenterCoordY(long value);
     long getCenterCoordX() const;
     void move(double deltaX, double deltaY);
-    //void setCenterCoordX(long value);
     long getRadius() const;
     void setRadius(long value);
 private:
-    static const int DEFAULT_VERTEX_RADIUS = 15;
     double centerCoordX, centerCoordY, radius;
+    long xMinimumLimit, xMaximumLimit, yMinimumLimit, yMaximumLimit;
 };
 
 #endif // VISABLEVERTEX_H

@@ -3,9 +3,9 @@
 
 const double DEFAULT_SPRING_PARAMETER = 0.5;
 const double DEFAULT_COULOMB_PARAMETER = 500;
-const double DEFAULT_TIME_DELTA = 5;
+const double DEFAULT_TIME_DELTA = 3;
 const double DEFAULT_SPRING_LENGTH = 100;
-const double STOP_FORCE_MODULE = 0.12;
+const double STOP_FORCE_MODULE = 0.07;
 
 void ForceDirectedNetworkDrawing::placeVertecies(std::vector<VisableVertex> &vertecies)
 {
