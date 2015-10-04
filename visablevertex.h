@@ -28,7 +28,7 @@ public:
 
 private:
     static const int DEFAULT_VERTEX_RADIUS = 15;
-    long centerCoordX, centerCoordY, radius;
+    double centerCoordX, centerCoordY, radius;
     ForceVector velocity;
 };
 
