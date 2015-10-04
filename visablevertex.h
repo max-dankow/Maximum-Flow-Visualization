@@ -1,6 +1,17 @@
 #ifndef VISABLEVERTEX_H
 #define VISABLEVERTEX_H
-#include <QtOpenGL>
+
+struct ForceVector{
+    ForceVector(double xComponent = 0, double yComponent = 0) :
+        xComponent(xComponent), yComponent(yComponent){}
+    ForceVector operator -(const ForceVector &forceVector);
+    ForceVector operator +(const ForceVector &forceVector);
+    ForceVector operator *(double value);
+    ForceVector& operator +=(const ForceVector &forceVector);
+    ForceVector getNormalVector() const;
+    double getLength() const;
+    double xComponent, yComponent;
+};
 
 class VisableVertex
 {
@@ -18,7 +29,7 @@ public:
 private:
     static const int DEFAULT_VERTEX_RADIUS = 15;
     long centerCoordX, centerCoordY, radius;
-    //double velocity, acceleration;
+    ForceVector velocity;
 };
 
 #endif // VISABLEVERTEX_H

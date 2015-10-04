@@ -1,5 +1,5 @@
 #include "maxflowvisualizer.h"
-
+#include <string>
 MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     : QGLWidget(parent), relabelToFrontAlgo(network), networkPlacer(network)
 {
@@ -8,8 +8,8 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     resize(900, 600);
     verteciesList.resize(relabelToFrontAlgo.getNetwork().getVerticesNumber());
     std::default_random_engine randomGenerator;
-    std::uniform_int_distribution<int> xCoordRandom(200, height() - 200);
-    std::uniform_int_distribution<int> yCoordRandom(200, width() - 200);
+    std::uniform_int_distribution<int> xCoordRandom(200, width() - 10);
+    std::uniform_int_distribution<int> yCoordRandom(200, height() - 10);
     for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex)
     {
         int newCoordX = xCoordRandom(randomGenerator);
@@ -25,7 +25,17 @@ void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
     QPainter painter(this);
     showEdges(painter);
     showVertecies(painter);
+    painter.drawText(width()-10, height()-10, (std::to_string(verteciesList.size())).c_str());
 }
+/*
+void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Right)
+    {
+        networkPlacer.doStep(verteciesList);
+        update();
+    }
+}*/
 
 void MaxFlowVisualizer::showVertecies(QPainter &painter)
 {
@@ -79,6 +89,7 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
                         (pointFrom.y() - pointTo.y()) * vertexRaduis / length);
     QPoint arrow((pointFrom.x() - pointTo.x()) * 20 / length,
                         (pointFrom.y() - pointTo.y()) * 20 / length);
+    //draw arrow ->
     painter.setPen(QPen(Qt::black, 3));
     painter.drawLine(pointFrom, pointTo);
     painter.setPen(QPen(Qt::black, 3));
@@ -94,6 +105,7 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
 void MaxFlowVisualizer::animationStep()
 {
     //todo: update flow network state: a step of algo
-    //update();
+    networkPlacer.doStep(verteciesList);
+    update();
 }
 

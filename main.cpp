@@ -4,6 +4,7 @@
 #include <iostream>
 #include "maxflowvisualizer.h"
 #include "algorithmrelabeltofront.h"
+#include <random>
 
 Network readInput()
 {
@@ -21,6 +22,33 @@ Network readInput()
     return inputNetwork;
 }
 
+std::random_device rd;
+std::default_random_engine randomGenerator(rd());
+
+Network generateRandomNetwork()
+{
+    std::uniform_int_distribution<int> verteciesNumberRandom(3, 20);
+    std::uniform_int_distribution<int> edgesNumberRandom(1, 20);
+    std::uniform_int_distribution<FlowType> capacityRandom(1, 20);
+    int verteciesNumber = verteciesNumberRandom(randomGenerator);
+    int edgesNumber = edgesNumberRandom(randomGenerator);
+    std::uniform_int_distribution<VertexIndex> vertexRandom(0, verteciesNumber - 1);
+    Network network(verteciesNumber, 0, verteciesNumber - 1);
+
+    for (int i = 0; i < edgesNumber; ++i)
+    {
+        VertexIndex vertexFrom = vertexRandom(randomGenerator);
+        VertexIndex vertexTo = vertexRandom(randomGenerator);
+        FlowType capacity = capacityRandom(randomGenerator);
+        if (vertexFrom != vertexTo && !network.hasEdge(vertexFrom, vertexTo, capacity) && !network.hasEdge(vertexTo, vertexFrom, capacity))
+        {
+            network.addEdge(Edge(vertexFrom, vertexTo, 1, capacity, 0));
+            network.addEdge(Edge(vertexTo, vertexFrom, 1, 0, 0));
+        }
+    }
+    return network;
+}
+
 int main(int argc, char *argv[])
 {
     freopen("input.txt", "r", stdin);
@@ -29,7 +57,7 @@ int main(int argc, char *argv[])
     std::cout << maxFlowSolver.calculateMaxFlow() << "\n";
 
     QApplication a(argc, argv);
-    MaxFlowVisualizer mainWindow(inputNetwork);
+    MaxFlowVisualizer mainWindow(generateRandomNetwork());
     mainWindow.show();
 
     return a.exec();
