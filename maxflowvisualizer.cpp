@@ -1,7 +1,7 @@
 #include "maxflowvisualizer.h"
 
 MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
-    : QGLWidget(parent), relabelToFrontAlgo(network)
+    : QGLWidget(parent), relabelToFrontAlgo(network), networkPlacer(network)
 {
     animationTimer = new QTimer(this);
     connect(animationTimer, SIGNAL(timeout()), this, SLOT(animationStep()));
@@ -94,5 +94,6 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
 void MaxFlowVisualizer::animationStep()
 {
     //todo: update flow network state: a step of algo
-    update();
+    //update();
 }
+

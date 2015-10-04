@@ -5,19 +5,25 @@ long VisableVertex::getCenterCoordY() const
     return centerCoordY;
 }
 
-void VisableVertex::setCenterCoordY(long value)
+/*void VisableVertex::setCenterCoordY(long value)
 {
     centerCoordY = value;
-}
+}*/
 long VisableVertex::getCenterCoordX() const
 {
     return centerCoordX;
 }
 
-void VisableVertex::setCenterCoordX(long value)
+void VisableVertex::move(double deltaX, double deltaY)
+{
+    centerCoordX += deltaX;
+    centerCoordY += deltaY;
+}
+
+/*void VisableVertex::setCenterCoordX(long value)
 {
     centerCoordX = value;
-}
+}*/
 
 long VisableVertex::getRadius() const
 {

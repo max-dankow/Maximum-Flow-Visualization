@@ -16,10 +16,12 @@ SOURCES += main.cpp\
     algorithmrelabeltofront.cpp \
     network.cpp \
     visablevertex.cpp \
-    maxflowvisualizer.cpp
+    maxflowvisualizer.cpp \
+    forcedirectedgraphdrawing.cpp
 
 HEADERS  += \
     algorithmrelabeltofront.h \
     network.h \
     visablevertex.h \
-    maxflowvisualizer.h
+    maxflowvisualizer.h \
+    forcedirectedgraphdrawing.h

@@ -11,6 +11,7 @@
 #include <math.h>
 #include "visablevertex.h"
 #include "algorithmrelabeltofront.h"
+#include "forcedirectedgraphdrawing.h"
 
 class MaxFlowVisualizer : public QGLWidget
 {
@@ -28,6 +29,7 @@ private:
     void drawEdge(const Edge &edge, QPainter &painter) const;
     std::vector<VisableVertex> verteciesList;
     AlgorithmRelabelToFront relabelToFrontAlgo;
+    ForceDirectedNetworkDrawing networkPlacer;
 private slots:
     void animationStep();
 };
