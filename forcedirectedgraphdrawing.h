@@ -22,7 +22,7 @@ public:
         timeDelta(timeDelta){}
 
     void placeVertecies(std::vector<VisableVertex> &vertecies);
-    void doStep(std::vector<VisableVertex> &vertecies);
+    bool doStep(std::vector<VisableVertex> &vertecies);
 private:
     Network network;
     double springParameter, normalSpringLength, coulombParameter, timeDelta;

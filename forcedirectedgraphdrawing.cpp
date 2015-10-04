@@ -1,9 +1,11 @@
 #include "forcedirectedgraphdrawing.h"
+#include <iostream>
 
 const double DEFAULT_SPRING_PARAMETER = 1;
-const double DEFAULT_COULOMB_PARAMETER = 400;
-const double DEFAULT_TIME_DELTA = 10;
-const double DEFAULT_SPRING_LENGTH = 200;
+const double DEFAULT_COULOMB_PARAMETER = 500;
+const double DEFAULT_TIME_DELTA = 5;
+const double DEFAULT_SPRING_LENGTH = 150;
+const double STOP_FORCE_MODULE = 0.1;
 
 void ForceDirectedNetworkDrawing::placeVertecies(std::vector<VisableVertex> &vertecies)
 {
@@ -13,7 +15,7 @@ void ForceDirectedNetworkDrawing::placeVertecies(std::vector<VisableVertex> &ver
     }
 }
 
-void ForceDirectedNetworkDrawing::doStep(std::vector<VisableVertex> &vertecies)
+bool ForceDirectedNetworkDrawing::doStep(std::vector<VisableVertex> &vertecies)
 {
     std::vector<ForceVector> forces(vertecies.size());
     for (VertexIndex vertexFrom = 0; vertexFrom < vertecies.size(); ++vertexFrom)
@@ -38,11 +40,19 @@ void ForceDirectedNetworkDrawing::doStep(std::vector<VisableVertex> &vertecies)
                                                         vertecies[vertexTo].getCenterCoordX(),
                                                         vertecies[vertexTo].getCenterCoordY());
         }
+        /*forces[vertexFrom] += calculateCoulombForce(vertecies[vertexFrom].getCenterCoordX(),
+                                                    vertecies[vertexFrom].getCenterCoordY(),
+                                                    450, 300) * (-0.1);*/
+        //forces[vertexFrom] += forces[vertexFrom] * (-0.5);
     }
+    double maxForceModule;
     for (VertexIndex vertex = 0; vertex < vertecies.size(); ++vertex)
     {
+        maxForceModule += forces[vertex].getLength();
         vertecies[vertex].move(timeDelta * forces[vertex].xComponent,timeDelta * forces[vertex].yComponent);
     }
+    std::cout << maxForceModule << "\n";
+    return maxForceModule < STOP_FORCE_MODULE;
 }
 
 ForceVector ForceDirectedNetworkDrawing::calculateSpringForce

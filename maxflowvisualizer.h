@@ -16,6 +16,11 @@
 class MaxFlowVisualizer : public QGLWidget
 {
     Q_OBJECT
+    enum States{
+        Planarization,
+        Scaling
+    };
+
 public:
     MaxFlowVisualizer(Network network, QWidget *parent = 0);
 protected:
@@ -23,6 +28,7 @@ protected:
     //void keyPressEvent(QKeyEvent *event);
 private:
     const int ANIMATION_STEP_DELAY_MS = 5;
+    States state;
     QTimer *animationTimer;
     void showVertecies(QPainter &painter);
     void showEdges(QPainter &painter);

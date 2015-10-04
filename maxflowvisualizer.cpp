@@ -17,6 +17,7 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
         verteciesList[vertex] = VisableVertex(newCoordX, newCoordY);
     }
     animationTimer->start(ANIMATION_STEP_DELAY_MS);
+    state = Planarization;
 }
 
 void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
@@ -104,8 +105,16 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
 
 void MaxFlowVisualizer::animationStep()
 {
-    //todo: update flow network state: a step of algo
-    networkPlacer.doStep(verteciesList);
+    switch (state) {
+    case Planarization:
+        if (networkPlacer.doStep(verteciesList))
+        {
+            state = Scaling;
+        }
+        break;
+    default:
+        break;
+    }
     update();
 }
 

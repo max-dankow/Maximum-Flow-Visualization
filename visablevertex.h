@@ -25,11 +25,9 @@ public:
     //void setCenterCoordX(long value);
     long getRadius() const;
     void setRadius(long value);
-
 private:
     static const int DEFAULT_VERTEX_RADIUS = 15;
     double centerCoordX, centerCoordY, radius;
-    ForceVector velocity;
 };
 
 #endif // VISABLEVERTEX_H
