@@ -16,13 +16,17 @@ public:
     }
     AlgorithmRelabelToFront();
     FlowType calculateMaxFlow();
+    void init();
+    bool doStep();
     Network &getNetwork();
-
+    long getVertexHeight(VertexIndex vertex) const;
 private:
     Network network;
     std::vector<long> verticesHeight;
     std::vector<FlowType> verticesExcessFlow;
     std::vector<std::list<Edge>::iterator> currentAdjacentEdge;
+    std::list<VertexIndex> verticesList;
+    std::list<VertexIndex>::iterator currentVertexIt;
     void initializePreflow();
     void relabelVertex(VertexIndex vertex);
     void pushExcessFlow(Edge& edge);

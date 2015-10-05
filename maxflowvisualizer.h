@@ -18,7 +18,10 @@ class MaxFlowVisualizer : public QGLWidget
     Q_OBJECT
     enum States{
         Planarization,
-        Scaling
+        Scaling,
+        AlgorithmInit,
+        AlgoritmRunning,
+        DoNothing
     };
 
 public:
@@ -27,18 +30,17 @@ protected:
     void paintEvent(QPaintEvent *e);
     void keyPressEvent(QKeyEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *e);
-    void mainFunction();
 private:
     const int ANIMATION_STEP_DELAY_MS = 5;
     States state;
     QTimer *animationTimer;
+    std::vector<VisableVertex> verteciesList;
+    AlgorithmRelabelToFront relabelToFrontAlgo;
+    ForceDirectedNetworkDrawing networkPlacer;
     void showVertecies(QPainter &painter);
     void showEdges(QPainter &painter);
     void drawVertex(const VisableVertex &vertex, QPainter &painter) const;
     void drawEdge(const Edge &edge, QPainter &painter) const;
-    std::vector<VisableVertex> verteciesList;
-    AlgorithmRelabelToFront relabelToFrontAlgo;
-    ForceDirectedNetworkDrawing networkPlacer;
 private slots:
     void animationStep();
 };

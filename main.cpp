@@ -46,7 +46,15 @@ Network generateRandomNetwork()
             network.addEdge(Edge(vertexTo, vertexFrom, 1, 0, 0));
         }
     }
-    return network;
+    AlgorithmRelabelToFront maxFlowSolver(network);
+    if (maxFlowSolver.calculateMaxFlow() != 0)
+    {
+        return network;
+    }
+    else
+    {
+        return generateRandomNetwork();
+    }
 }
 
 int main(int argc, char *argv[])

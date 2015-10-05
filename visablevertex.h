@@ -24,10 +24,17 @@ public:
         yMinimumLimit(yMinimumLimit), yMaximumLimit(yMaximumLimit){}
     VisableVertex(){}
     long getCenterCoordY() const;
+    void setCenterCoordY(double value);
     long getCenterCoordX() const;
+    void setCenterCoordX(double value);
     void move(double deltaX, double deltaY);
     long getRadius() const;
     void setRadius(long value);
+    long getXMinimumLimit() const;
+    long getXMaximumLimit() const;
+    long getYMinimumLimit() const;
+    long getYMaximumLimit() const;
+
 private:
     double centerCoordX, centerCoordY, radius;
     long xMinimumLimit, xMaximumLimit, yMinimumLimit, yMaximumLimit;

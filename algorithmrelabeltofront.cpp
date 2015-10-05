@@ -8,18 +8,15 @@ void AlgorithmRelabelToFront::initializePreflow()
         verticesExcessFlow[vertex] = 0;
         verticesHeight[vertex] = 0;
     }
-  //перебираем все вершины
     for (VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
         std::list<Edge>& edges = network.getEdgesListFromVertex(vertex);
-      //перебираем все ребра, исходящие из из очередной вершины
         for (auto edgesIt = edges.begin(); edgesIt != edges.end(); ++edgesIt)
         {  
             if (edgesIt->getCapacity() == 0)
             {
                 continue;
             }
-          //если это ребро исходит из истока, то
             if (vertex == network.getSourceIndex())
             {  
               //пропускаем по ребру максимальный допустимый поток и соответсвенно меняем избыток
@@ -42,10 +39,17 @@ void AlgorithmRelabelToFront::initializePreflow()
 
 FlowType AlgorithmRelabelToFront::calculateMaxFlow()
 {
-    //инициализируем предпоток
+    init();
+    //auto currentVertexIt = verticesList.begin();
+    while (!doStep());
+    assert(network.getNetworkFlowAmount() == verticesExcessFlow[network.getSinkIndex()]);
+    return network.getNetworkFlowAmount();
+}
+
+// Инициализирует все необходимые данные для алгоритма
+void AlgorithmRelabelToFront::init()
+{
     initializePreflow();
-    //L - список всех вершин графа, кроме стока и истока
-    std::list<VertexIndex> verticesList;
     for(VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
         if (vertex != network.getSourceIndex() && vertex != network.getSinkIndex())
@@ -53,33 +57,37 @@ FlowType AlgorithmRelabelToFront::calculateMaxFlow()
             verticesList.push_back(vertex);
         }
     }
-    //проинициализируем указатели current каждой вершины current[u] = 1;
     for(VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
         currentAdjacentEdge.push_back(network.getEdgesListFromVertex(vertex).begin());
     }
-    auto currentVertexIt = verticesList.begin();
-    while (currentVertexIt != verticesList.end())
-    {
-        long oldHeight = verticesHeight[*currentVertexIt];
-        //разгружаем вершину
-        dischargeVertex(*currentVertexIt);
-        //если высота изменилась, то перемещаем u в начало списка
-        if (verticesHeight[*currentVertexIt] > oldHeight)
-        {
-            //переместрить вершину в начало
-            VertexIndex vertex = *currentVertexIt;
-            verticesList.erase(currentVertexIt);
-            verticesList.push_front(vertex);
-        }
-        ++currentVertexIt;
-    }
-    assert(network.getNetworkFlowAmount() == verticesExcessFlow[network.getSinkIndex()]);
-    return network.getNetworkFlowAmount();
+    currentVertexIt = verticesList.begin();
 }
+
+bool AlgorithmRelabelToFront::doStep()
+{
+    long oldHeight = verticesHeight[*currentVertexIt];
+    dischargeVertex(*currentVertexIt);
+    if (verticesHeight[*currentVertexIt] > oldHeight)
+    {
+        //переместрить вершину в начало
+        VertexIndex vertex = *currentVertexIt;
+        verticesList.erase(currentVertexIt);
+        verticesList.push_front(vertex);
+    }
+    ++currentVertexIt;
+    return currentVertexIt == verticesList.end();
+}
+
 Network &AlgorithmRelabelToFront::getNetwork()
 {
     return network;
+}
+
+long AlgorithmRelabelToFront::getVertexHeight(VertexIndex vertex) const
+{
+    assert(vertex >= 0 && vertex < verticesHeight.size());
+    return verticesHeight[vertex];
 }
 
 

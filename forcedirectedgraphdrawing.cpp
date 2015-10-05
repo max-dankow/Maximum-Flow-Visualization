@@ -4,8 +4,33 @@
 const double DEFAULT_SPRING_PARAMETER = 0.5;
 const double DEFAULT_COULOMB_PARAMETER = 500;
 const double DEFAULT_TIME_DELTA = 3;
-const double DEFAULT_SPRING_LENGTH = 100;
+const double DEFAULT_SPRING_LENGTH = 150;
 const double STOP_FORCE_MODULE = 0.07;
+
+static std::random_device rd;
+static std::default_random_engine randomGenerator(rd());
+
+void ForceDirectedNetworkDrawing::throwVerticesRandomly(std::vector<VisableVertex> &vertecies)
+{
+    if (vertecies.size() == 0)
+    {
+        return;
+    }
+    // Для отределения диапозона случайных координат берем любую(первую) из вершин,
+    // т.к. для остальных допустимые диапозоны такие же
+    VisableVertex vertexInstance = vertecies[0];
+    std::uniform_int_distribution<int> xCoordRandom(vertexInstance.getXMinimumLimit(),
+                                                    vertexInstance.getXMaximumLimit());
+    std::uniform_int_distribution<int> yCoordRandom(vertexInstance.getYMinimumLimit(),
+                                                    vertexInstance.getYMaximumLimit());
+    for (VertexIndex vertex = 0; vertex < vertecies.size(); ++vertex)
+    {
+        int newCoordX = xCoordRandom(randomGenerator);
+        int newCoordY = yCoordRandom(randomGenerator);
+        vertecies[vertex].setCenterCoordX(newCoordX);
+        vertecies[vertex].setCenterCoordY(newCoordY);
+    }
+}
 
 void ForceDirectedNetworkDrawing::placeVertecies(std::vector<VisableVertex> &vertecies)
 {
@@ -52,7 +77,6 @@ bool ForceDirectedNetworkDrawing::doStep(std::vector<VisableVertex> &vertecies)
         maxForceModule += forces[vertex].getLength();
         vertecies[vertex].move(timeDelta * forces[vertex].xComponent,timeDelta * forces[vertex].yComponent);
     }
-    //std::cout << maxForceModule << "\n";
     return maxForceModule < STOP_FORCE_MODULE;
 }
 

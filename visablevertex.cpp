@@ -6,9 +6,19 @@ long VisableVertex::getCenterCoordY() const
     return centerCoordY;
 }
 
+void VisableVertex::setCenterCoordY(double value)
+{
+    centerCoordY = value;
+}
+
 long VisableVertex::getCenterCoordX() const
 {
     return centerCoordX;
+}
+
+void VisableVertex::setCenterCoordX(double value)
+{
+    centerCoordX = value;
 }
 
 void VisableVertex::move(double deltaX, double deltaY)
@@ -33,6 +43,25 @@ long VisableVertex::getRadius() const
 void VisableVertex::setRadius(long value)
 {
     radius = value;
+}
+long VisableVertex::getXMinimumLimit() const
+{
+    return xMinimumLimit;
+}
+
+long VisableVertex::getXMaximumLimit() const
+{
+    return xMaximumLimit;
+}
+
+long VisableVertex::getYMinimumLimit() const
+{
+    return yMinimumLimit;
+}
+
+long VisableVertex::getYMaximumLimit() const
+{
+    return yMaximumLimit;
 }
 
 ForceVector ForceVector::operator -(const ForceVector &forceVector)

@@ -1,32 +1,30 @@
-#include "maxflowvisualizer.h"
+﻿#include "maxflowvisualizer.h"
 #include <QDesktopWidget>
 #include <QApplication>
 #include <string>
+#include <iostream>
+
 MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     : QGLWidget(parent), relabelToFrontAlgo(network), networkPlacer(network)
 {
-    animationTimer = new QTimer(this);
-    connect(animationTimer, SIGNAL(timeout()), this, SLOT(animationStep()));
     setWindowState(Qt::WindowFullScreen);
     QApplication::desktop()->screenGeometry();
     QRect screen = QApplication::desktop()->screenGeometry();
     resize(screen.width(), screen.height());
+    //все вершины располагаются в (0,0), далее уже networkPlacer раскидает их
     verteciesList.resize(relabelToFrontAlgo.getNetwork().getVerticesNumber());
-    std::default_random_engine randomGenerator;
-    std::uniform_int_distribution<int> xCoordRandom(15, width() - 15);
-    std::uniform_int_distribution<int> yCoordRandom(15, height() - 15);
     for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex)
     {
-        int newCoordX = xCoordRandom(randomGenerator);
-        int newCoordY = yCoordRandom(randomGenerator);
         int newRadius = VisableVertex::DEFAULT_VERTEX_RADIUS;
-        verteciesList[vertex] = VisableVertex(newCoordX, newCoordY, newRadius,
+        verteciesList[vertex] = VisableVertex(0, 0, newRadius,
                                               newRadius, width() - newRadius,
                                               newRadius, height() - newRadius);
     }
-    animationTimer->start(ANIMATION_STEP_DELAY_MS);
+    networkPlacer.throwVerticesRandomly(verteciesList);
     state = Planarization;
-    //mainFunction();
+    animationTimer = new QTimer(this);
+    connect(animationTimer, SIGNAL(timeout()), this, SLOT(animationStep()));
+    animationTimer->start(ANIMATION_STEP_DELAY_MS);
 }
 
 void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
@@ -34,16 +32,43 @@ void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
     QPainter painter(this);
     showEdges(painter);
     showVertecies(painter);
-    painter.drawText(width()-10, height()-10, (std::to_string(verteciesList.size())).c_str());
 }
 
 void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
 {
     QWidget::keyPressEvent(event);
-    if (event->key() == Qt::Key_Right)
-    {
-        networkPlacer.doStep(verteciesList);
-        update();
+    // todo: разделить анализ нажатий по состояниям визуализатора
+    switch (event->key()) {
+    case Qt::Key_Right:
+        if (state == Planarization)
+        {
+            networkPlacer.doStep(verteciesList);
+            update();
+        }
+        if (state == AlgoritmRunning)
+        {
+            if (relabelToFrontAlgo.doStep())
+            {
+                state = DoNothing;
+            }
+            update();
+        }
+        break;
+    case Qt::Key_Space:
+        if (state == Planarization)
+        {
+            state = Scaling;
+        }
+        break;
+    case Qt::Key_R:
+        //if (state == Planarization)
+        //{
+            networkPlacer.throwVerticesRandomly(verteciesList);
+            state = Planarization;
+        //}
+        break;
+    default:
+        break;
     }
 }
 
@@ -59,21 +84,11 @@ void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *e)
   }
 }
 
-void MaxFlowVisualizer::mainFunction()
-{
-    int iterationCounter = 0;
-    while (!networkPlacer.doStep(verteciesList) && iterationCounter < 10000)
-    {
-        ++iterationCounter;
-        update();
-    };
-}
-
 void MaxFlowVisualizer::showVertecies(QPainter &painter)
 {
-    for (VisableVertex vertex : verteciesList)
+    for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++ vertex)
     {
-        drawVertex(vertex, painter);
+        drawVertex(verteciesList[vertex], painter);
     }
 }
 
@@ -90,7 +105,6 @@ void MaxFlowVisualizer::showEdges(QPainter &painter)
             }
         }
     }
-
 }
 
 void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painter) const
@@ -105,9 +119,22 @@ void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painte
 
 void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
 {
-    QPen pen1(Qt::black);
-    painter.setBrush(QBrush(Qt::lightGray));
+    QPen pen1;
     pen1.setWidth(3);
+    if (relabelToFrontAlgo.getVertexHeight(edge.getFirstVertexIndex())
+            == relabelToFrontAlgo.getVertexHeight(edge.getSecondVertexIndex()) + 1)
+    {
+        pen1.setColor(Qt::black);
+    }
+    else
+    {
+        pen1.setColor(Qt::gray);
+    }
+    if (edge.getCapacity() == edge.getFlow())
+    {
+        pen1.setColor(Qt::darkBlue);
+    }
+    //painter.setBrush(QBrush(Qt::lightGray));
     painter.setPen(pen1);
     QPoint pointFrom(verteciesList[edge.getFirstVertexIndex()].getCenterCoordX(),
             verteciesList[edge.getFirstVertexIndex()].getCenterCoordY());
@@ -120,10 +147,10 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
                         (pointFrom.y() - pointTo.y()) * vertexRaduis / length);
     QPoint arrow((pointFrom.x() - pointTo.x()) * 20 / length,
                         (pointFrom.y() - pointTo.y()) * 20 / length);
-    //draw arrow ->
-    painter.setPen(QPen(Qt::black, 3));
+    // Нарисовать стрелку (сами маленькие боковые линии)
+    painter.setPen(pen1);
     painter.drawLine(pointFrom, pointTo);
-    painter.setPen(QPen(Qt::black, 3));
+    painter.setPen(pen1);
     painter.translate(pointTo.x(), pointTo.y());
     painter.translate(offsetVector.x(), offsetVector.y());
     painter.rotate(30);
@@ -131,6 +158,20 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
     painter.rotate(-60);
     painter.drawLine(QPoint(0, 0), arrow);
     painter.resetTransform();
+    QPen penForEdgeInfo;
+    if (edge.getCapacity() == edge.getFlow())
+    {
+        penForEdgeInfo.setColor(Qt::gray);
+    }
+    else
+    {
+        penForEdgeInfo.setColor(Qt::darkGreen);
+    }
+    painter.setPen(penForEdgeInfo);
+    std::string edgeInfo = "(" + std::to_string(edge.getFlow()) + " | "+ std::to_string(edge.getCapacity()) + ")";
+    painter.drawText(pointFrom.x() + (pointTo.x() - pointFrom.x()) / 2,
+                     pointFrom.y() + (pointTo.y() - pointFrom.y()) / 2,
+                     edgeInfo.c_str());
 }
 
 void MaxFlowVisualizer::animationStep()
@@ -145,8 +186,25 @@ void MaxFlowVisualizer::animationStep()
             }
         }
         break;
-    default:
+    case Scaling:
+        state = AlgorithmInit;
         break;
+    case AlgorithmInit:
+        // todo: оставить тут только планаризацию, все остальное вынести на клавиатуру
+        relabelToFrontAlgo.init();
+        state = AlgoritmRunning;
+        break;
+    case AlgoritmRunning:
+        /*if (relabelToFrontAlgo.doStep())
+        {
+            state = DoNothing;
+        }*/
+        break;
+    case DoNothing:
+        // todo
+        break;
+    default:
+        assert(false);
     }
     update();
 }

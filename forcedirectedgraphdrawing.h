@@ -20,7 +20,7 @@ public:
         normalSpringLength(normalSpringLength),
         coulombParameter(coulombParameter),
         timeDelta(timeDelta){}
-
+    void throwVerticesRandomly(std::vector<VisableVertex> &vertecies);
     void placeVertecies(std::vector<VisableVertex> &vertecies);
     bool doStep(std::vector<VisableVertex> &vertecies);
 private:
