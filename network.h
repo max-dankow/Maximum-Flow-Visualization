@@ -61,6 +61,7 @@ public:
     void setEdgeFlow(std::list<Edge>::iterator edge, FlowType newFlowValue);
     void setEdgeFlow(Edge& edge, FlowType newFlowValue);
     void setEdgeFlow(VertexIndex vertexFrom, VertexIndex vertexTo, FlowType capacity, FlowType newFlowValue);
+    void clearFlow();
     VertexIndex getSourceIndex() const;
     VertexIndex getSinkIndex() const;
 private:

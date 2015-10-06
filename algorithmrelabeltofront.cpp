@@ -2,7 +2,6 @@
 
 void AlgorithmRelabelToFront::initializePreflow()
 {
-  //инициализируем Высоту и Избыточный Поток всех вершин
     for (VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
         verticesExcessFlow[vertex] = 0;
@@ -19,7 +18,7 @@ void AlgorithmRelabelToFront::initializePreflow()
             }
             if (vertex == network.getSourceIndex())
             {  
-              //пропускаем по ребру максимальный допустимый поток и соответсвенно меняем избыток
+                //пропускаем по ребру максимальный допустимый поток и соответсвенно меняем избыток
                 network.setEdgeFlow(*edgesIt, edgesIt->getCapacity());
                 verticesExcessFlow[edgesIt->getSecondVertexIndex()] += edgesIt->getCapacity();
                 verticesExcessFlow[vertex] -= edgesIt->getCapacity();
@@ -40,8 +39,11 @@ void AlgorithmRelabelToFront::initializePreflow()
 FlowType AlgorithmRelabelToFront::calculateMaxFlow()
 {
     init();
-    //auto currentVertexIt = verticesList.begin();
-    while (!doStep());
+    AlgoAction action(AlgoAction::ACTION_NOTHING);
+    while (action.getType() != AlgoAction::ACTION_TERMINATE)
+    {
+        action = doStep();
+    }
     assert(network.getNetworkFlowAmount() == verticesExcessFlow[network.getSinkIndex()]);
     return network.getNetworkFlowAmount();
 }
@@ -62,34 +64,38 @@ void AlgorithmRelabelToFront::init()
         currentAdjacentEdge.push_back(network.getEdgesListFromVertex(vertex).begin());
     }
     currentVertexIt = verticesList.begin();
+    oldHeightCurrentVertex = verticesHeight[*currentVertexIt];
 }
 
-bool AlgorithmRelabelToFront::doStep()
+AlgoAction AlgorithmRelabelToFront::doStep()
 {
-    long oldHeight = verticesHeight[*currentVertexIt];
-    dischargeVertex(*currentVertexIt);
-    if (verticesHeight[*currentVertexIt] > oldHeight)
+    // todo: как то нужно вынести oldHeight чтобы было корректно каждый раз
+    // Если при попытке провести discharge произошло какое-то содержательное
+    // действие (push или relabel), то очередной шаг равершен.
+    AlgoAction tryDischarge = dischargeVertex(*currentVertexIt);
+    if (tryDischarge.getType() != AlgoAction::ACTION_NOTHING)
     {
-        //переместрить вершину в начало
+        return tryDischarge;
+    }
+    // Иначе продолжаем алгоритм.
+    if (verticesHeight[*currentVertexIt] > oldHeightCurrentVertex)
+    {
+        // Переместрить вершину в начало.
         VertexIndex vertex = *currentVertexIt;
         verticesList.erase(currentVertexIt);
         verticesList.push_front(vertex);
     }
     ++currentVertexIt;
-    return currentVertexIt == verticesList.end();
+    if (currentVertexIt == verticesList.end())
+    {
+        return AlgoAction(AlgoAction::ACTION_TERMINATE);
+    }
+    else
+    {
+        oldHeightCurrentVertex = verticesHeight[*currentVertexIt];
+        return AlgoAction(AlgoAction::ACTION_SELECT, *currentVertexIt);
+    }
 }
-
-Network &AlgorithmRelabelToFront::getNetwork()
-{
-    return network;
-}
-
-long AlgorithmRelabelToFront::getVertexHeight(VertexIndex vertex) const
-{
-    assert(vertex >= 0 && vertex < verticesHeight.size());
-    return verticesHeight[vertex];
-}
-
 
 void AlgorithmRelabelToFront::relabelVertex(VertexIndex vertex)
 {
@@ -112,7 +118,6 @@ void AlgorithmRelabelToFront::pushExcessFlow(Edge& edge)
     VertexIndex vertexTo = edge.getSecondVertexIndex();
     FlowType deltaFlow = std::min(verticesExcessFlow[vertexFrom], edge.getCapacity() - edge.getFlow());
     network.addEdgeFlow(edge, deltaFlow);
-  //todo: find out what is necessary to do with a back edge
     if (edge.getCapacity() != 0)
     {
         network.addEdgeFlow(network.getEdge(vertexTo, vertexFrom, 0), -deltaFlow);
@@ -125,7 +130,7 @@ void AlgorithmRelabelToFront::pushExcessFlow(Edge& edge)
     verticesExcessFlow[vertexTo] += deltaFlow;
 }
 
-void AlgorithmRelabelToFront::dischargeVertex(VertexIndex vertex)
+AlgoAction AlgorithmRelabelToFront::dischargeVertex(VertexIndex vertex)
 {
     while (verticesExcessFlow[vertex] > 0)
     {
@@ -134,6 +139,7 @@ void AlgorithmRelabelToFront::dischargeVertex(VertexIndex vertex)
         {
             relabelVertex(vertex);
             currentAdjacentEdge[vertex] = network.getEdgesListFromVertex(vertex).begin();
+            return AlgoAction(AlgoAction::ACTION_RELABEL, vertex);
         }
         else
         {
@@ -141,6 +147,7 @@ void AlgorithmRelabelToFront::dischargeVertex(VertexIndex vertex)
                     && (verticesHeight[vertex] == verticesHeight[adjacentEdge->getSecondVertexIndex()] + 1))
             {
                 pushExcessFlow(*adjacentEdge);
+                return AlgoAction(AlgoAction::ACTION_PUSH, *adjacentEdge);
             }
             else
             {
@@ -148,5 +155,21 @@ void AlgorithmRelabelToFront::dischargeVertex(VertexIndex vertex)
             }
         }
     }
+    return AlgoAction(AlgoAction::ACTION_NOTHING);
 }
 
+Network &AlgorithmRelabelToFront::getNetwork()
+{
+    return network;
+}
+
+long AlgorithmRelabelToFront::getVertexHeight(VertexIndex vertex) const
+{
+    assert(vertex >= 0 && vertex < verticesHeight.size());
+    return verticesHeight[vertex];
+}
+
+AlgoAction::ActionType AlgoAction::getType() const
+{
+    return type;
+}

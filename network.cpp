@@ -69,6 +69,17 @@ void Network::setEdgeFlow(VertexIndex vertexFrom, VertexIndex vertexTo, FlowType
 {
     setEdgeFlow(getEdge(vertexFrom, vertexTo, capacity), newFlowValue);
 }
+
+void Network::clearFlow()
+{
+    for (VertexIndex vertex = 0; vertex < getVerticesNumber(); ++vertex)
+    {
+        for (auto edgeIt = edgesList[vertex].begin(); edgeIt != edgesList[vertex].end(); ++edgeIt)
+        {
+            edgeIt->setFlow(0);
+        }
+    }
+}
 VertexIndex Network::getSourceIndex() const
 {
     return sourceIndex;

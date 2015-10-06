@@ -13,15 +13,15 @@
 #include "algorithmrelabeltofront.h"
 #include "forcedirectedgraphdrawing.h"
 
-class MaxFlowVisualizer : public QGLWidget
+class MaxFlowVisualizer : public QWidget
 {
     Q_OBJECT
     enum States{
-        Planarization,
-        Scaling,
-        AlgorithmInit,
-        AlgoritmRunning,
-        DoNothing
+        PLANARIZATION,
+        SCALING,
+        ALGIRITHM_INIT,
+        ALGORITHM_RUN,
+        DO_NOTHING
     };
 
 public:
@@ -33,6 +33,7 @@ protected:
 private:
     const int ANIMATION_STEP_DELAY_MS = 5;
     States state;
+    AlgoAction lastAlgoActioin;
     QTimer *animationTimer;
     std::vector<VisableVertex> verteciesList;
     AlgorithmRelabelToFront relabelToFrontAlgo;

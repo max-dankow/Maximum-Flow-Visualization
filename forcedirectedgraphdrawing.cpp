@@ -1,5 +1,4 @@
 #include "forcedirectedgraphdrawing.h"
-#include <iostream>
 
 const double DEFAULT_SPRING_PARAMETER = 0.5;
 const double DEFAULT_COULOMB_PARAMETER = 500;

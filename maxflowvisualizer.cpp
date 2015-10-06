@@ -5,7 +5,7 @@
 #include <iostream>
 
 MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
-    : QGLWidget(parent), relabelToFrontAlgo(network), networkPlacer(network)
+    : QWidget(parent), relabelToFrontAlgo(network), networkPlacer(network)
 {
     setWindowState(Qt::WindowFullScreen);
     QApplication::desktop()->screenGeometry();
@@ -21,7 +21,7 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
                                               newRadius, height() - newRadius);
     }
     networkPlacer.throwVerticesRandomly(verteciesList);
-    state = Planarization;
+    state = PLANARIZATION;
     animationTimer = new QTimer(this);
     connect(animationTimer, SIGNAL(timeout()), this, SLOT(animationStep()));
     animationTimer->start(ANIMATION_STEP_DELAY_MS);
@@ -40,31 +40,32 @@ void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
     // todo: разделить анализ нажатий по состояниям визуализатора
     switch (event->key()) {
     case Qt::Key_Right:
-        if (state == Planarization)
+        if (state == PLANARIZATION)
         {
             networkPlacer.doStep(verteciesList);
             update();
         }
-        if (state == AlgoritmRunning)
+        if (state == ALGORITHM_RUN)
         {
-            if (relabelToFrontAlgo.doStep())
+            lastAlgoActioin = relabelToFrontAlgo.doStep();
+            if (lastAlgoActioin.getType() == AlgoAction::ACTION_TERMINATE)
             {
-                state = DoNothing;
+                state = DO_NOTHING;
             }
             update();
         }
         break;
     case Qt::Key_Space:
-        if (state == Planarization)
+        if (state == PLANARIZATION)
         {
-            state = Scaling;
+            state = SCALING;
         }
         break;
     case Qt::Key_R:
         //if (state == Planarization)
         //{
             networkPlacer.throwVerticesRandomly(verteciesList);
-            state = Planarization;
+            state = PLANARIZATION;
         //}
         break;
     default:
@@ -177,30 +178,30 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
 void MaxFlowVisualizer::animationStep()
 {
     switch (state) {
-    case Planarization:
+    case PLANARIZATION:
         for (int i = 0; i < 10; ++i)
         {
             if (networkPlacer.doStep(verteciesList))
             {
-                state = Scaling;
+                state = SCALING;
             }
         }
         break;
-    case Scaling:
-        state = AlgorithmInit;
+    case SCALING:
+        state = ALGIRITHM_INIT;
         break;
-    case AlgorithmInit:
+    case ALGIRITHM_INIT:
         // todo: оставить тут только планаризацию, все остальное вынести на клавиатуру
         relabelToFrontAlgo.init();
-        state = AlgoritmRunning;
+        state = ALGORITHM_RUN;
         break;
-    case AlgoritmRunning:
+    case ALGORITHM_RUN:
         /*if (relabelToFrontAlgo.doStep())
         {
             state = DoNothing;
         }*/
         break;
-    case DoNothing:
+    case DO_NOTHING:
         // todo
         break;
     default:
