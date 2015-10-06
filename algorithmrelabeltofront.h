@@ -20,6 +20,8 @@ public:
     AlgoAction(ActionType actionType, VertexIndex vertexInfo) :
         type(actionType), vertexInfo(vertexInfo){}
     ActionType getType() const;
+    VertexIndex getVertexInfo() const;
+    Edge getEdgeInfo() const;
 private:
     ActionType type;
     Edge edgeInfo;
@@ -38,7 +40,7 @@ public:
     }
     AlgorithmRelabelToFront();
     FlowType calculateMaxFlow();
-    void init();
+    AlgoAction init();
     AlgoAction doStep();
     Network &getNetwork();
     long getVertexHeight(VertexIndex vertex) const;

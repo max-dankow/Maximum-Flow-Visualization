@@ -1,5 +1,6 @@
 #ifndef VISABLEVERTEX_H
 #define VISABLEVERTEX_H
+#include "algorithmrelabeltofront.h"
 
 struct ForceVector{
     ForceVector(double xComponent = 0, double yComponent = 0) :
@@ -17,11 +18,12 @@ class VisableVertex
 {
 public:
     static const int DEFAULT_VERTEX_RADIUS = 15;
-    VisableVertex(long centerCoordX, long centerCoordY, long radius, long xMinimumLimit,
-                  long xMaximumLimit, long yMinimumLimit, long yMaximumLimit):
-        centerCoordX(centerCoordX), centerCoordY(centerCoordY), radius(radius),
-        xMinimumLimit (xMinimumLimit), xMaximumLimit (xMaximumLimit),
-        yMinimumLimit(yMinimumLimit), yMaximumLimit(yMaximumLimit){}
+    VisableVertex(VertexIndex vertexIndex, long centerCoordX, long centerCoordY,
+                  long radius, long xMinimumLimit, long xMaximumLimit,
+                  long yMinimumLimit, long yMaximumLimit):
+        vertexInGraphIndex (vertexIndex), centerCoordX (centerCoordX),
+        centerCoordY (centerCoordY), radius(radius), xMinimumLimit (xMinimumLimit),
+        xMaximumLimit (xMaximumLimit), yMinimumLimit (yMinimumLimit), yMaximumLimit(yMaximumLimit){}
     VisableVertex(){}
     long getCenterCoordY() const;
     void setCenterCoordY(double value);
@@ -34,8 +36,9 @@ public:
     long getXMaximumLimit() const;
     long getYMinimumLimit() const;
     long getYMaximumLimit() const;
-
+    VertexIndex getVertexInGraphIndex() const;
 private:
+    VertexIndex vertexInGraphIndex;
     double centerCoordX, centerCoordY, radius;
     long xMinimumLimit, xMaximumLimit, yMinimumLimit, yMaximumLimit;
 };

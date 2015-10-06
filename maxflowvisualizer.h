@@ -32,15 +32,16 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *e);
 private:
     const int ANIMATION_STEP_DELAY_MS = 5;
+    const int RIGHT_BAR_OF_HEIGHTS_WIDTH = 500;
     States state;
-    AlgoAction lastAlgoActioin;
+    AlgoAction lastAlgoAction;
     QTimer *animationTimer;
     std::vector<VisableVertex> verteciesList;
     AlgorithmRelabelToFront relabelToFrontAlgo;
     ForceDirectedNetworkDrawing networkPlacer;
     void showVertecies(QPainter &painter);
     void showEdges(QPainter &painter);
-    void drawVertex(const VisableVertex &vertex, QPainter &painter) const;
+    void drawVertex(const VisableVertex &vertex, QPainter &painter);
     void drawEdge(const Edge &edge, QPainter &painter) const;
 private slots:
     void animationStep();

@@ -16,8 +16,8 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex)
     {
         int newRadius = VisableVertex::DEFAULT_VERTEX_RADIUS;
-        verteciesList[vertex] = VisableVertex(0, 0, newRadius,
-                                              newRadius, width() - newRadius,
+        verteciesList[vertex] = VisableVertex(vertex, 0, 0, newRadius,
+                                              newRadius, width() - RIGHT_BAR_OF_HEIGHTS_WIDTH,
                                               newRadius, height() - newRadius);
     }
     networkPlacer.throwVerticesRandomly(verteciesList);
@@ -47,8 +47,8 @@ void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
         }
         if (state == ALGORITHM_RUN)
         {
-            lastAlgoActioin = relabelToFrontAlgo.doStep();
-            if (lastAlgoActioin.getType() == AlgoAction::ACTION_TERMINATE)
+            lastAlgoAction = relabelToFrontAlgo.doStep();
+            if (lastAlgoAction.getType() == AlgoAction::ACTION_TERMINATE)
             {
                 state = DO_NOTHING;
             }
@@ -108,10 +108,23 @@ void MaxFlowVisualizer::showEdges(QPainter &painter)
     }
 }
 
-void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painter) const
+void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painter)
 {
     QPen pen1(Qt::black, 2);
+    if (lastAlgoAction.getType() == AlgoAction::ACTION_SELECT
+        && lastAlgoAction.getVertexInfo() == vertex.getVertexInGraphIndex())
+    {
+        pen1.setColor(Qt::red);
+    }
     painter.setBrush(QBrush(Qt::blue));
+    if (relabelToFrontAlgo.getNetwork().getSourceIndex() == vertex.getVertexInGraphIndex())
+    {
+        painter.setBrush(QBrush(Qt::green));
+    }
+    if (relabelToFrontAlgo.getNetwork().getSinkIndex() == vertex.getVertexInGraphIndex())
+    {
+        painter.setBrush(QBrush(Qt::red));
+    }
     pen1.setWidth(3);
     painter.setPen(pen1);
     QPoint centerPoint(vertex.getCenterCoordX(), vertex.getCenterCoordY());
@@ -123,7 +136,7 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
     QPen pen1;
     pen1.setWidth(3);
     if (relabelToFrontAlgo.getVertexHeight(edge.getFirstVertexIndex())
-            == relabelToFrontAlgo.getVertexHeight(edge.getSecondVertexIndex()) + 1)
+        == relabelToFrontAlgo.getVertexHeight(edge.getSecondVertexIndex()) + 1)
     {
         pen1.setColor(Qt::black);
     }
@@ -135,7 +148,10 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
     {
         pen1.setColor(Qt::darkBlue);
     }
-    //painter.setBrush(QBrush(Qt::lightGray));
+    if (lastAlgoAction.getType() == AlgoAction::ACTION_PUSH && lastAlgoAction.getEdgeInfo() == edge)
+    {
+        pen1.setColor(Qt::red);
+    }
     painter.setPen(pen1);
     QPoint pointFrom(verteciesList[edge.getFirstVertexIndex()].getCenterCoordX(),
             verteciesList[edge.getFirstVertexIndex()].getCenterCoordY());
@@ -192,7 +208,7 @@ void MaxFlowVisualizer::animationStep()
         break;
     case ALGIRITHM_INIT:
         // todo: оставить тут только планаризацию, все остальное вынести на клавиатуру
-        relabelToFrontAlgo.init();
+        lastAlgoAction = relabelToFrontAlgo.init();
         state = ALGORITHM_RUN;
         break;
     case ALGORITHM_RUN:

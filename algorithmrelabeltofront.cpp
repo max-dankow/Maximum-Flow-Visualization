@@ -49,7 +49,7 @@ FlowType AlgorithmRelabelToFront::calculateMaxFlow()
 }
 
 // Инициализирует все необходимые данные для алгоритма
-void AlgorithmRelabelToFront::init()
+AlgoAction AlgorithmRelabelToFront::init()
 {
     initializePreflow();
     for(VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
@@ -65,11 +65,11 @@ void AlgorithmRelabelToFront::init()
     }
     currentVertexIt = verticesList.begin();
     oldHeightCurrentVertex = verticesHeight[*currentVertexIt];
+    return AlgoAction(AlgoAction::ACTION_SELECT, *currentVertexIt);
 }
 
 AlgoAction AlgorithmRelabelToFront::doStep()
 {
-    // todo: как то нужно вынести oldHeight чтобы было корректно каждый раз
     // Если при попытке провести discharge произошло какое-то содержательное
     // действие (push или relabel), то очередной шаг равершен.
     AlgoAction tryDischarge = dischargeVertex(*currentVertexIt);
@@ -84,6 +84,7 @@ AlgoAction AlgorithmRelabelToFront::doStep()
         VertexIndex vertex = *currentVertexIt;
         verticesList.erase(currentVertexIt);
         verticesList.push_front(vertex);
+        currentVertexIt = verticesList.begin();
     }
     ++currentVertexIt;
     if (currentVertexIt == verticesList.end())
@@ -172,4 +173,16 @@ long AlgorithmRelabelToFront::getVertexHeight(VertexIndex vertex) const
 AlgoAction::ActionType AlgoAction::getType() const
 {
     return type;
+}
+
+VertexIndex AlgoAction::getVertexInfo() const
+{
+    assert(type == ACTION_SELECT || type == ACTION_RELABEL);
+    return vertexInfo;
+}
+
+Edge AlgoAction::getEdgeInfo() const
+{
+    assert(type == ACTION_PUSH);
+    return edgeInfo;
 }

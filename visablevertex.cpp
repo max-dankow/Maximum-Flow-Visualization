@@ -64,6 +64,11 @@ long VisableVertex::getYMaximumLimit() const
     return yMaximumLimit;
 }
 
+VertexIndex VisableVertex::getVertexInGraphIndex() const
+{
+    return vertexInGraphIndex;
+}
+
 ForceVector ForceVector::operator -(const ForceVector &forceVector)
 {
     double xResult = this->xComponent - forceVector.xComponent;
