@@ -23,14 +23,15 @@ void VisableVertex::setCenterCoordX(double value)
 
 void VisableVertex::move(double deltaX, double deltaY)
 {
+    // todo: убрать это совсем.
     if (centerCoordX + deltaX < xMinimumLimit || centerCoordX + deltaX > xMaximumLimit)
     {
-        deltaX *= -1;
+        deltaX *= 0;
     }
     centerCoordX += deltaX;
     if (centerCoordY + deltaY < yMinimumLimit || centerCoordY + deltaY > yMaximumLimit)
     {
-        deltaY *= -1;
+        deltaY *= 0;
     }
     centerCoordY += deltaY;
 }

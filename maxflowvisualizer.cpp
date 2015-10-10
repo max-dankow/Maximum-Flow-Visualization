@@ -24,6 +24,7 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     animationTimer = new QTimer(this);
     connect(animationTimer, SIGNAL(timeout()), this, SLOT(animationStep()));
     animationTimer->start(ANIMATION_STEP_DELAY_MS);
+    setMouseTracking(true);
 }
 
 void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
@@ -77,6 +78,7 @@ void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
 void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *e)
 {
   QWidget::mouseDoubleClickEvent(e);
+
   if(isFullScreen())
   {
      setWindowState(Qt::WindowMaximized);
@@ -84,6 +86,35 @@ void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *e)
   {
      setWindowState(Qt::WindowFullScreen);
   }
+}
+
+void MaxFlowVisualizer::mousePressEvent(QMouseEvent *event)
+{
+    QWidget::mousePressEvent(event);
+    rememberState = state;
+    vertexToDrag = getVertexUnderCursor(event->pos());
+    state = VERTEX_DRAGING;
+}
+
+void MaxFlowVisualizer::mouseMoveEvent(QMouseEvent *event)
+{
+    QWidget::mouseMoveEvent(event);
+    if (state == VERTEX_DRAGING)
+    {
+        if (vertexToDrag != verteciesList.size())
+        {
+            double xDelta = event->pos().x() - verteciesList[vertexToDrag].getCenterCoordX();
+            double yDelta = event->pos().y() - verteciesList[vertexToDrag].getCenterCoordY();
+            verteciesList[vertexToDrag].move(xDelta, yDelta);
+            update();
+        }
+    }
+}
+
+void MaxFlowVisualizer::mouseReleaseEvent(QMouseEvent *event)
+{
+    QWidget::mousePressEvent(event);
+    state = rememberState;
 }
 
 void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
@@ -94,9 +125,8 @@ void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
     int borderOffset = VisableVertex::DEFAULT_VERTEX_RADIUS;
     painter.translate(width() - RIGHT_BAR_OF_HEIGHTS_WIDTH, borderOffset);
     unsigned barWidth = RIGHT_BAR_OF_HEIGHTS_WIDTH;
-    int verteciesNumber = relabelToFrontAlgo.getNetwork().getVerticesNumber();
+    int verteciesNumber = verteciesList.size();
     int barHeight = height() - 2 * borderOffset;
-    //painter.drawRect(0, 0, barWidth, barHeight);
     int bottomY = barHeight;
     double scaleHeight = barHeight / ( 2 * verteciesNumber);
     for (size_t level = 0; level < 2 * verteciesNumber + 1; ++level)
@@ -210,19 +240,34 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
     painter.drawLine(QPoint(0, 0), arrow);
     painter.resetTransform();
     QPen penForEdgeInfo;
-    if (edge.getCapacity() == edge.getFlow())
-    {
-        penForEdgeInfo.setColor(Qt::gray);
-    }
-    else
+    if (state == ALGORITHM_RUN || state == DO_NOTHING)
     {
         penForEdgeInfo.setColor(Qt::darkGreen);
+        painter.setPen(penForEdgeInfo);
+        std::string edgeInfo = "(" + std::to_string(edge.getFlow()) + " | "+ std::to_string(edge.getCapacity()) + ")";
+        painter.drawText(pointFrom.x() + (pointTo.x() - pointFrom.x()) / 2,
+                         pointFrom.y() + (pointTo.y() - pointFrom.y()) / 2,
+                         edgeInfo.c_str());
     }
-    painter.setPen(penForEdgeInfo);
-    std::string edgeInfo = "(" + std::to_string(edge.getFlow()) + " | "+ std::to_string(edge.getCapacity()) + ")";
-    painter.drawText(pointFrom.x() + (pointTo.x() - pointFrom.x()) / 2,
-                     pointFrom.y() + (pointTo.y() - pointFrom.y()) / 2,
-                     edgeInfo.c_str());
+}
+
+/* По координатам курсора получает уникальный номер вершины, которая
+ * попадает под него. В противном случае возвращает номер вешины,
+ * следующей за последней в списке вершин (то есть verticesList.size()).
+ */
+VertexIndex MaxFlowVisualizer::getVertexUnderCursor(QPoint cursorPosition)
+{
+    QVector2D cursor(cursorPosition);
+    for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex)
+    {
+        QVector2D currentVertexCenter(verteciesList[vertex].getCenterCoordX(), verteciesList[vertex].getCenterCoordY());
+        QVector2D distanceVector(currentVertexCenter - cursor);
+        if (distanceVector.length() < verteciesList[vertex].getRadius())
+        {
+            return vertex;
+        }
+    }
+    return verteciesList.size();
 }
 
 void MaxFlowVisualizer::animationStep()
@@ -250,6 +295,9 @@ void MaxFlowVisualizer::animationStep()
         {
             state = DoNothing;
         }*/
+        break;
+    case VERTEX_DRAGING:
+        // todo ))))))
         break;
     case DO_NOTHING:
         // todo

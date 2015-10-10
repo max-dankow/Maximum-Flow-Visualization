@@ -2,6 +2,7 @@
 #define VISABLEVERTEX_H
 #include "algorithmrelabeltofront.h"
 
+// todo: заменить собственную реализацию QVector2D
 struct ForceVector{
     ForceVector(double xComponent = 0, double yComponent = 0) :
         xComponent(xComponent), yComponent(yComponent){}
