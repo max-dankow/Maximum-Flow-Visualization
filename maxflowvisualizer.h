@@ -39,6 +39,7 @@ private:
     std::vector<VisableVertex> verteciesList;
     AlgorithmRelabelToFront relabelToFrontAlgo;
     ForceDirectedNetworkDrawing networkPlacer;
+    void drawHeightsBar(QPainter &painter);
     void showVertecies(QPainter &painter);
     void showEdges(QPainter &painter);
     void drawVertex(const VisableVertex &vertex, QPainter &painter);

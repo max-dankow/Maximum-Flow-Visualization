@@ -4,7 +4,7 @@ const double DEFAULT_SPRING_PARAMETER = 0.5;
 const double DEFAULT_COULOMB_PARAMETER = 500;
 const double DEFAULT_TIME_DELTA = 3;
 const double DEFAULT_SPRING_LENGTH = 150;
-const double STOP_FORCE_MODULE = 0.05;
+const double STOP_FORCE_MODULE = 0.025;
 
 static std::random_device rd;
 static std::default_random_engine randomGenerator(rd());
@@ -65,10 +65,6 @@ bool ForceDirectedNetworkDrawing::doStep(std::vector<VisableVertex> &vertecies)
                                                         vertecies[vertexTo].getCenterCoordX(),
                                                         vertecies[vertexTo].getCenterCoordY());
         }
-        /*forces[vertexFrom] += calculateCoulombForce(vertecies[vertexFrom].getCenterCoordX(),
-                                                    vertecies[vertexFrom].getCenterCoordY(),
-                                                    450, 300) * (-0.1);*/
-        //forces[vertexFrom] += forces[vertexFrom] * (-0.5);
     }
     double maxForceModule;
     for (VertexIndex vertex = 0; vertex < vertecies.size(); ++vertex)

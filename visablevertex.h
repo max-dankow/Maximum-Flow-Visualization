@@ -24,6 +24,8 @@ public:
         vertexInGraphIndex (vertexIndex), centerCoordX (centerCoordX),
         centerCoordY (centerCoordY), radius(radius), xMinimumLimit (xMinimumLimit),
         xMaximumLimit (xMaximumLimit), yMinimumLimit (yMinimumLimit), yMaximumLimit(yMaximumLimit){}
+    VisableVertex(const VisableVertex &visableVertex) = default;
+
     VisableVertex(){}
     long getCenterCoordY() const;
     void setCenterCoordY(double value);

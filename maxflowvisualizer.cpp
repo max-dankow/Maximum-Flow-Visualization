@@ -8,7 +8,6 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     : QWidget(parent), relabelToFrontAlgo(network), networkPlacer(network)
 {
     setWindowState(Qt::WindowFullScreen);
-    QApplication::desktop()->screenGeometry();
     QRect screen = QApplication::desktop()->screenGeometry();
     resize(screen.width(), screen.height());
     //все вершины располагаются в (0,0), далее уже networkPlacer раскидает их
@@ -17,7 +16,7 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     {
         int newRadius = VisableVertex::DEFAULT_VERTEX_RADIUS;
         verteciesList[vertex] = VisableVertex(vertex, 0, 0, newRadius,
-                                              newRadius, width() - RIGHT_BAR_OF_HEIGHTS_WIDTH,
+                                              newRadius, width() - RIGHT_BAR_OF_HEIGHTS_WIDTH - VisableVertex::DEFAULT_VERTEX_RADIUS,
                                               newRadius, height() - newRadius);
     }
     networkPlacer.throwVerticesRandomly(verteciesList);
@@ -30,8 +29,10 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
 void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
 {
     QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
     showEdges(painter);
     showVertecies(painter);
+    drawHeightsBar(painter);
 }
 
 void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
@@ -83,6 +84,39 @@ void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *e)
   {
      setWindowState(Qt::WindowFullScreen);
   }
+}
+
+void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
+{
+    painter.save();
+    painter.setPen(QPen(Qt::black, 3));
+    painter.setBrush(Qt::lightGray);
+    int borderOffset = VisableVertex::DEFAULT_VERTEX_RADIUS;
+    painter.translate(width() - RIGHT_BAR_OF_HEIGHTS_WIDTH, borderOffset);
+    unsigned barWidth = RIGHT_BAR_OF_HEIGHTS_WIDTH;
+    int verteciesNumber = relabelToFrontAlgo.getNetwork().getVerticesNumber();
+    int barHeight = height() - 2 * borderOffset;
+    //painter.drawRect(0, 0, barWidth, barHeight);
+    int bottomY = barHeight;
+    double scaleHeight = barHeight / ( 2 * verteciesNumber);
+    for (size_t level = 0; level < 2 * verteciesNumber + 1; ++level)
+    {
+        int x = 0;
+        painter.drawLine(x,
+                         bottomY - scaleHeight * level,
+                         x + barWidth,
+                         bottomY - scaleHeight * level);
+    }
+    double scaleWidth = RIGHT_BAR_OF_HEIGHTS_WIDTH / verteciesNumber;
+    for (size_t vertex = 0; vertex < verteciesNumber; ++vertex)
+    {
+        int x = borderOffset;
+        VisableVertex currentVertex = verteciesList[vertex];
+        currentVertex.setCenterCoordX(x + scaleWidth * vertex);
+        currentVertex.setCenterCoordY(bottomY - scaleHeight * relabelToFrontAlgo.getVertexHeight(vertex));
+        drawVertex(currentVertex, painter);
+    }
+    painter.restore();
 }
 
 void MaxFlowVisualizer::showVertecies(QPainter &painter)
