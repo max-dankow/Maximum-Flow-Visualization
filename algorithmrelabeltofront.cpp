@@ -2,11 +2,8 @@
 
 void AlgorithmRelabelToFront::initializePreflow()
 {
-    for (VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
-    {
-        verticesExcessFlow[vertex] = 0;
-        verticesHeight[vertex] = 0;
-    }
+    verticesExcessFlow.assign(network.getVerticesNumber(), 0);
+    verticesHeight.assign(network.getVerticesNumber(), 0);
     for (VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
         std::list<Edge>& edges = network.getEdgesListFromVertex(vertex);
@@ -51,7 +48,9 @@ FlowType AlgorithmRelabelToFront::calculateMaxFlow()
 // Инициализирует все необходимые данные для алгоритма
 AlgoAction AlgorithmRelabelToFront::init()
 {
+    network.clearFlow();
     initializePreflow();
+    verticesList.clear();
     for(VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
         if (vertex != network.getSourceIndex() && vertex != network.getSinkIndex())
@@ -59,6 +58,7 @@ AlgoAction AlgorithmRelabelToFront::init()
             verticesList.push_back(vertex);
         }
     }
+    currentAdjacentEdge.clear();
     for(VertexIndex vertex = 0; vertex < network.getVerticesNumber(); ++vertex)
     {
         currentAdjacentEdge.push_back(network.getEdgesListFromVertex(vertex).begin());
@@ -96,6 +96,21 @@ AlgoAction AlgorithmRelabelToFront::doStep()
         oldHeightCurrentVertex = verticesHeight[*currentVertexIt];
         return AlgoAction(AlgoAction::ACTION_SELECT, *currentVertexIt);
     }
+}
+
+AlgoAction AlgorithmRelabelToFront::doSteps(unsigned stepsCount)
+{
+    AlgoAction lastAction;
+    for (unsigned step = 0; step < stepsCount; ++step)
+    {
+        lastAction = doStep();
+        //assert(lastAction.getType() != AlgoAction::ACTION_NOTHING);
+        if (lastAction.getType() == AlgoAction::ACTION_TERMINATE)
+        {
+            return lastAction;
+        }
+    }
+    return lastAction;
 }
 
 void AlgorithmRelabelToFront::relabelVertex(VertexIndex vertex)

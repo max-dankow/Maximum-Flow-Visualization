@@ -5,6 +5,9 @@
 #include <vector>
 #include "network.h"
 
+// Содержит тип действия совершаемого алгоритмом за 1 шаг doStep.
+// В соответствии с этим действием содержит дополнительную информацию о нем.
+// Используется в визуализаторе для сообветствующего отображения действий алгоритма.
 class AlgoAction{
 public:
     enum ActionType{
@@ -42,6 +45,7 @@ public:
     FlowType calculateMaxFlow();
     AlgoAction init();
     AlgoAction doStep();
+    AlgoAction doSteps(unsigned stepsCount);
     Network &getNetwork();
     long getVertexHeight(VertexIndex vertex) const;
 private:

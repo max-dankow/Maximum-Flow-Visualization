@@ -21,6 +21,7 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     }
     networkPlacer.throwVerticesRandomly(verteciesList);
     state = PLANARIZATION;
+    algoStepsCount = 0;
     animationTimer = new QTimer(this);
     connect(animationTimer, SIGNAL(timeout()), this, SLOT(animationStep()));
     animationTimer->start(ANIMATION_STEP_DELAY_MS);
@@ -34,6 +35,8 @@ void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
     showEdges(painter);
     showVertecies(painter);
     drawHeightsBar(painter);
+    std::string step = std::to_string(algoStepsCount);
+    painter.drawText(100,100, step.c_str());
 }
 
 void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
@@ -41,6 +44,19 @@ void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
     QWidget::keyPressEvent(event);
     // todo: разделить анализ нажатий по состояниям визуализатора
     switch (event->key()) {
+    case Qt::Key_Left:
+        if (state == ALGORITHM_RUN && algoStepsCount > 0)
+        {
+            relabelToFrontAlgo.init();
+            --algoStepsCount;
+            lastAlgoAction = relabelToFrontAlgo.doSteps(algoStepsCount);
+            if (lastAlgoAction.getType() == AlgoAction::ACTION_TERMINATE)
+            {
+                state = DO_NOTHING;
+            }
+            update();
+        }
+        break;
     case Qt::Key_Right:
         if (state == PLANARIZATION)
         {
@@ -50,6 +66,7 @@ void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
         if (state == ALGORITHM_RUN)
         {
             lastAlgoAction = relabelToFrontAlgo.doStep();
+            ++algoStepsCount;
             if (lastAlgoAction.getType() == AlgoAction::ACTION_TERMINATE)
             {
                 state = DO_NOTHING;
@@ -60,7 +77,7 @@ void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Space:
         if (state == PLANARIZATION)
         {
-            state = SCALING;
+            state = ALGIRITHM_INIT;
         }
         break;
     case Qt::Key_R:
@@ -175,8 +192,15 @@ void MaxFlowVisualizer::showEdges(QPainter &painter)
 void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painter)
 {
     QPen pen1(Qt::black, 2);
-    if (lastAlgoAction.getType() == AlgoAction::ACTION_SELECT
-        && lastAlgoAction.getVertexInfo() == vertex.getVertexInGraphIndex())
+    if (((lastAlgoAction.getType() == AlgoAction::ACTION_SELECT
+          || lastAlgoAction.getType() == AlgoAction::ACTION_RELABEL)
+         && lastAlgoAction.getVertexInfo() == vertex.getVertexInGraphIndex()))
+    {
+        pen1.setColor(Qt::red);
+    }
+    if (((lastAlgoAction.getType() == AlgoAction::ACTION_PUSH)
+         && (lastAlgoAction.getEdgeInfo().getFirstVertexIndex() == vertex.getVertexInGraphIndex()
+            || lastAlgoAction.getEdgeInfo().getSecondVertexIndex() == vertex.getVertexInGraphIndex())))
     {
         pen1.setColor(Qt::red);
     }
@@ -251,10 +275,9 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
     }
 }
 
-/* По координатам курсора получает уникальный номер вершины, которая
- * попадает под него. В противном случае возвращает номер вешины,
- * следующей за последней в списке вершин (то есть verticesList.size()).
- */
+// По координатам курсора получает уникальный номер вершины, которая
+// попадает под него. В противном случае возвращает номер вешины,
+// следующей за последней в списке вершин (то есть verticesList.size()).
 VertexIndex MaxFlowVisualizer::getVertexUnderCursor(QPoint cursorPosition)
 {
     QVector2D cursor(cursorPosition);
@@ -278,16 +301,14 @@ void MaxFlowVisualizer::animationStep()
         {
             if (networkPlacer.doStep(verteciesList))
             {
-                state = SCALING;
+                state = ALGIRITHM_INIT;
             }
         }
-        break;
-    case SCALING:
-        state = ALGIRITHM_INIT;
         break;
     case ALGIRITHM_INIT:
         // todo: оставить тут только планаризацию, все остальное вынести на клавиатуру
         lastAlgoAction = relabelToFrontAlgo.init();
+        algoStepsCount = 0;
         state = ALGORITHM_RUN;
         break;
     case ALGORITHM_RUN:

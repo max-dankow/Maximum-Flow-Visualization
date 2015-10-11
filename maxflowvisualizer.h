@@ -17,11 +17,15 @@ class MaxFlowVisualizer : public QWidget
 {
     Q_OBJECT
     enum States{
+        // Состояние пошагового исполнения силового алгоритма рамещения вершин.
         PLANARIZATION,
+        // Состояние перетаксивания вершины мышкой.
         VERTEX_DRAGING,
-        SCALING,
+        // Единажды вызывается инициализация данных алгоритма.
         ALGIRITHM_INIT,
+        // Состояние пошагового исполнения самого алгоритма и визуализации.
         ALGORITHM_RUN,
+        // Состояние простого отображения сети без выполнения действий.
         DO_NOTHING
     };
 
@@ -42,6 +46,7 @@ private:
     // Используется для восстановления состояния state визуализатора
     // после перетаскивания вершины мышкой.
     States rememberState;
+    unsigned algoStepsCount;
     AlgoAction lastAlgoAction;
     QTimer *animationTimer;
     std::vector<VisableVertex> verteciesList;
