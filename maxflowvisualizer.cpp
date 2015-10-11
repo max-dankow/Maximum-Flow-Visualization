@@ -35,8 +35,6 @@ void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
     showEdges(painter);
     showVertecies(painter);
     drawHeightsBar(painter);
-    std::string step = std::to_string(algoStepsCount);
-    painter.drawText(100,100, step.c_str());
 }
 
 void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
@@ -110,7 +108,10 @@ void MaxFlowVisualizer::mousePressEvent(QMouseEvent *event)
     QWidget::mousePressEvent(event);
     rememberState = state;
     vertexToDrag = getVertexUnderCursor(event->pos());
-    state = VERTEX_DRAGING;
+    if (vertexToDrag != verteciesList.size())
+    {
+        state = VERTEX_DRAGING;
+    }
 }
 
 void MaxFlowVisualizer::mouseMoveEvent(QMouseEvent *event)
@@ -136,17 +137,32 @@ void MaxFlowVisualizer::mouseReleaseEvent(QMouseEvent *event)
 
 void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
 {
+    // todo: разобрать по человечески код, совсем трудно читать
     painter.save();
     painter.setPen(QPen(Qt::black, 3));
     painter.setBrush(Qt::lightGray);
+    int verteciesNumber = verteciesList.size();
+
+    // Посчитаем сколько уровней следует реально отображать
+    // (максимальный занятый + 1).
+    int levelNumber = 0;
+    for (VertexIndex vertex = 0; vertex < verteciesNumber; ++vertex)
+    {
+        int vertexHeight = relabelToFrontAlgo.getVertexHeight(vertex);
+        if (levelNumber < vertexHeight)
+        {
+            levelNumber = vertexHeight;
+        }
+    }
+    ++levelNumber;
+
     int borderOffset = VisableVertex::DEFAULT_VERTEX_RADIUS;
     painter.translate(width() - RIGHT_BAR_OF_HEIGHTS_WIDTH, borderOffset);
     unsigned barWidth = RIGHT_BAR_OF_HEIGHTS_WIDTH;
-    int verteciesNumber = verteciesList.size();
     int barHeight = height() - 2 * borderOffset;
     int bottomY = barHeight;
-    double scaleHeight = barHeight / ( 2 * verteciesNumber);
-    for (size_t level = 0; level < 2 * verteciesNumber + 1; ++level)
+    double scaleHeight = barHeight / levelNumber;
+    for (size_t level = 0; level < levelNumber; ++level)
     {
         int x = 0;
         painter.drawLine(x,
@@ -154,6 +170,7 @@ void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
                          x + barWidth,
                          bottomY - scaleHeight * level);
     }
+
     double scaleWidth = RIGHT_BAR_OF_HEIGHTS_WIDTH / verteciesNumber;
     for (size_t vertex = 0; vertex < verteciesNumber; ++vertex)
     {
@@ -191,25 +208,33 @@ void MaxFlowVisualizer::showEdges(QPainter &painter)
 
 void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painter)
 {
+    VertexIndex vertexIndex = vertex.getVertexInGraphIndex();
     QPen pen1(Qt::black, 2);
     if (((lastAlgoAction.getType() == AlgoAction::ACTION_SELECT
           || lastAlgoAction.getType() == AlgoAction::ACTION_RELABEL)
-         && lastAlgoAction.getVertexInfo() == vertex.getVertexInGraphIndex()))
+         && lastAlgoAction.getVertexInfo() == vertexIndex))
     {
         pen1.setColor(Qt::red);
     }
     if (((lastAlgoAction.getType() == AlgoAction::ACTION_PUSH)
-         && (lastAlgoAction.getEdgeInfo().getFirstVertexIndex() == vertex.getVertexInGraphIndex()
-            || lastAlgoAction.getEdgeInfo().getSecondVertexIndex() == vertex.getVertexInGraphIndex())))
+         && (lastAlgoAction.getEdgeInfo().getFirstVertexIndex() == vertexIndex
+            || lastAlgoAction.getEdgeInfo().getSecondVertexIndex() == vertexIndex)))
     {
         pen1.setColor(Qt::red);
     }
-    painter.setBrush(QBrush(Qt::blue));
-    if (relabelToFrontAlgo.getNetwork().getSourceIndex() == vertex.getVertexInGraphIndex())
+    if (relabelToFrontAlgo.getVertexExcessFlow(vertexIndex) != 0)
+    {
+        painter.setBrush(QBrush(Qt::blue));
+    }
+    else
+    {
+        painter.setBrush(QBrush(Qt::lightGray));
+    }
+    if (relabelToFrontAlgo.getNetwork().getSourceIndex() == vertexIndex)
     {
         painter.setBrush(QBrush(Qt::green));
     }
-    if (relabelToFrontAlgo.getNetwork().getSinkIndex() == vertex.getVertexInGraphIndex())
+    if (relabelToFrontAlgo.getNetwork().getSinkIndex() == vertexIndex)
     {
         painter.setBrush(QBrush(Qt::red));
     }
@@ -217,6 +242,10 @@ void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painte
     painter.setPen(pen1);
     QPoint centerPoint(vertex.getCenterCoordX(), vertex.getCenterCoordY());
     painter.drawEllipse(centerPoint, vertex.getRadius(), vertex.getRadius());
+    std::string heightStr = std::to_string(relabelToFrontAlgo.getVertexExcessFlow(vertexIndex));
+    painter.drawText(vertex.getCenterCoordX() - vertex.getRadius() / 2,
+                     vertex.getCenterCoordY() + vertex.getRadius() / 4,
+                     heightStr.c_str());
 }
 
 void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
@@ -232,7 +261,7 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
     {
         pen1.setColor(Qt::gray);
     }
-    if (edge.getCapacity() == edge.getFlow())
+    if (edge.getFlow() != 0)
     {
         pen1.setColor(Qt::darkBlue);
     }

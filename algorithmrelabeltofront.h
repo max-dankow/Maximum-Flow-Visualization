@@ -36,10 +36,7 @@ class AlgorithmRelabelToFront
 public:
     AlgorithmRelabelToFront(const Network &network):network(network)
     {
-        this->network.clearFlow();
-        verticesExcessFlow.assign(network.getVerticesNumber(), 0);
-        verticesHeight.assign(network.getVerticesNumber(), 0);
-        currentAdjacentEdge.reserve(network.getVerticesNumber());
+        init();
     }
     AlgorithmRelabelToFront();
     FlowType calculateMaxFlow();
@@ -48,6 +45,7 @@ public:
     AlgoAction doSteps(unsigned stepsCount);
     Network &getNetwork();
     long getVertexHeight(VertexIndex vertex) const;
+    long getVertexExcessFlow(VertexIndex vertex) const;
 private:
     void initializePreflow();
     void relabelVertex(VertexIndex vertex);

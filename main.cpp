@@ -28,7 +28,7 @@ std::default_random_engine randomGenerator(rd());
 Network generateRandomNetwork()
 {
     std::uniform_int_distribution<int> verteciesNumberRandom(10, 20);
-    std::uniform_int_distribution<int> edgesNumberRandom(20, 50);
+    std::uniform_int_distribution<int> edgesNumberRandom(20, 30);
     std::uniform_int_distribution<FlowType> capacityRandom(1, 20);
     int verteciesNumber = verteciesNumberRandom(randomGenerator);
     int edgesNumber = edgesNumberRandom(randomGenerator);

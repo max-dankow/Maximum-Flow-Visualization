@@ -185,6 +185,12 @@ long AlgorithmRelabelToFront::getVertexHeight(VertexIndex vertex) const
     return verticesHeight[vertex];
 }
 
+long AlgorithmRelabelToFront::getVertexExcessFlow(VertexIndex vertex) const
+{
+    assert(vertex >= 0 && vertex < verticesHeight.size());
+    return verticesExcessFlow[vertex];
+}
+
 AlgoAction::ActionType AlgoAction::getType() const
 {
     return type;
