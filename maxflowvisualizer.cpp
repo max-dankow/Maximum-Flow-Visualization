@@ -28,9 +28,10 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     setMouseTracking(true);
 }
 
-void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
+void MaxFlowVisualizer::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
+    // Включает сглаживание.
     painter.setRenderHint(QPainter::Antialiasing);
     showEdges(painter);
     showVertecies(painter);
@@ -40,60 +41,60 @@ void MaxFlowVisualizer::paintEvent(QPaintEvent *e)
 void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
 {
     QWidget::keyPressEvent(event);
-    // todo: разделить анализ нажатий по состояниям визуализатора
     switch (event->key()) {
     case Qt::Key_Left:
-        if (state == ALGORITHM_RUN && algoStepsCount > 0)
+        // Oткат алгоритма на один элементарный шаг назад.
+        // Т.к. даже для очень больших графов сам алгоритм работает меньше секунды,
+        // а визуализатор расчитан на сравнительно маленькие графы (около 30 вершин),
+        // то перезапуск алгоритма с начала до n-1 шага будет эффективнен и надежен.
+        if ((state == ALGORITHM_RUN || state == ALGORITHM_TERM) && algoStepsCount > 0)
         {
             relabelToFrontAlgo.init();
             --algoStepsCount;
             lastAlgoAction = relabelToFrontAlgo.doSteps(algoStepsCount);
             if (lastAlgoAction.getType() == AlgoAction::ACTION_TERMINATE)
             {
-                state = DO_NOTHING;
+                state = ALGORITHM_TERM;
+            }
+            else
+            {
+                state = ALGORITHM_RUN;
             }
             update();
         }
         break;
     case Qt::Key_Right:
-        if (state == PLANARIZATION)
-        {
-            networkPlacer.doStep(verteciesList);
-            update();
-        }
+        // Выполняет один элементарный шаг алгоритма.
         if (state == ALGORITHM_RUN)
         {
             lastAlgoAction = relabelToFrontAlgo.doStep();
             ++algoStepsCount;
             if (lastAlgoAction.getType() == AlgoAction::ACTION_TERMINATE)
             {
-                state = DO_NOTHING;
+                state = ALGORITHM_TERM;
             }
             update();
         }
         break;
     case Qt::Key_Space:
+        // Остановка размещения графа.
         if (state == PLANARIZATION)
         {
             state = ALGIRITHM_INIT;
         }
         break;
     case Qt::Key_R:
-        //if (state == Planarization)
-        //{
-            networkPlacer.throwVerticesRandomly(verteciesList);
-            state = PLANARIZATION;
-        //}
-        break;
-    default:
+        // Полный перезапуск замещения графа.
+        networkPlacer.throwVerticesRandomly(verteciesList);
+        state = PLANARIZATION;
         break;
     }
 }
 
-void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *e)
+// Просто переключение между полноэкранным режимом и максимимзацией окна.
+void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *event)
 {
-  QWidget::mouseDoubleClickEvent(e);
-
+  QWidget::mouseDoubleClickEvent(event);
   if(isFullScreen())
   {
      setWindowState(Qt::WindowMaximized);
@@ -103,6 +104,10 @@ void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *e)
   }
 }
 
+// При нажатии клавиши мыши может начаться перетаскивание вершины.
+// Обработчик анализирует, на какую вершину попадает курсор и,
+// если он попадает на вершину, то текущее состояние системы запоминается
+// и визуализаор переходит в состояние перетаскивания вершины.
 void MaxFlowVisualizer::mousePressEvent(QMouseEvent *event)
 {
     QWidget::mousePressEvent(event);
@@ -114,6 +119,8 @@ void MaxFlowVisualizer::mousePressEvent(QMouseEvent *event)
     }
 }
 
+// Обработчик этого события отвечает только за сдвиг перетаскиваемой вершины,
+// если система находится соответственно в состоянии перетаскивания.
 void MaxFlowVisualizer::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
@@ -129,40 +136,49 @@ void MaxFlowVisualizer::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
+// Отвечает за завершение перетаскивания вершины при отпускании клавиши мыши.
+// Восстанавливает состояние системы на момент нажатия мыши.
 void MaxFlowVisualizer::mouseReleaseEvent(QMouseEvent *event)
 {
     QWidget::mousePressEvent(event);
     state = rememberState;
 }
 
-void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
+// Считает сколько уровней высот вершин следует реально отображать
+// (максимальный занятый + 1).
+int MaxFlowVisualizer::countUsedHeightLevels() const
 {
-    // todo: разобрать по человечески код, совсем трудно читать
-    painter.save();
-    painter.setPen(QPen(Qt::black, 3));
-    painter.setBrush(Qt::lightGray);
-    int verteciesNumber = verteciesList.size();
-
-    // Посчитаем сколько уровней следует реально отображать
-    // (максимальный занятый + 1).
-    int levelNumber = 0;
+    size_t verteciesNumber = verteciesList.size();
+    int levelCount = 0;
     for (VertexIndex vertex = 0; vertex < verteciesNumber; ++vertex)
     {
         int vertexHeight = relabelToFrontAlgo.getVertexHeight(vertex);
-        if (levelNumber < vertexHeight)
+        if (levelCount < vertexHeight)
         {
-            levelNumber = vertexHeight;
+            levelCount = vertexHeight;
         }
     }
-    ++levelNumber;
+    ++levelCount;
+    return levelCount;
+}
 
+// Рисует панель высот вершин (справа).
+void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
+{
+    painter.save();
+    painter.setPen(QPen(Qt::black, 3));
+    painter.setBrush(Qt::lightGray);
+    size_t verteciesNumber = verteciesList.size();
+    int levelCount = countUsedHeightLevels();
     int borderOffset = VisableVertex::DEFAULT_VERTEX_RADIUS;
+    // Для удобства перенесем систему коодинат в левый верхний угол будующей панели.
     painter.translate(width() - RIGHT_BAR_OF_HEIGHTS_WIDTH, borderOffset);
     unsigned barWidth = RIGHT_BAR_OF_HEIGHTS_WIDTH;
     int barHeight = height() - 2 * borderOffset;
     int bottomY = barHeight;
-    double scaleHeight = barHeight / levelNumber;
-    for (size_t level = 0; level < levelNumber; ++level)
+    double scaleHeight = barHeight / levelCount;
+    // Рисует горизонтальные линии, соответсвующие уровням.
+    for (size_t level = 0; level < levelCount; ++level)
     {
         int x = 0;
         painter.drawLine(x,
@@ -170,13 +186,16 @@ void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
                          x + barWidth,
                          bottomY - scaleHeight * level);
     }
-
+    // Отображение вершин на панели высот.
     double scaleWidth = RIGHT_BAR_OF_HEIGHTS_WIDTH / verteciesNumber;
     for (size_t vertex = 0; vertex < verteciesNumber; ++vertex)
     {
-        int x = borderOffset;
-        VisableVertex currentVertex = verteciesList[vertex];
-        currentVertex.setCenterCoordX(x + scaleWidth * vertex);
+        // Для того, чтобы все визуальные эффекты вершины (выделение, надписи и т.д.)
+        // отображались и на боковой панели высот, мы в явном виде создаем новую
+        // вершину - точную копию исходной (простой конструктор копирования)
+        // и перемещаем ее на нужное место на панели высот.
+        VisableVertex currentVertex(verteciesList[vertex]);
+        currentVertex.setCenterCoordX(borderOffset + scaleWidth * vertex);
         currentVertex.setCenterCoordY(bottomY - scaleHeight * relabelToFrontAlgo.getVertexHeight(vertex));
         drawVertex(currentVertex, painter);
     }
@@ -209,19 +228,22 @@ void MaxFlowVisualizer::showEdges(QPainter &painter)
 void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painter)
 {
     VertexIndex vertexIndex = vertex.getVertexInGraphIndex();
-    QPen pen1(Qt::black, 2);
+    QPen pen(Qt::black, 2);
+    // Если вершина была задействована в последнем шаге алгоритма
+    // то выделяем ее красным цветом.
     if (((lastAlgoAction.getType() == AlgoAction::ACTION_SELECT
           || lastAlgoAction.getType() == AlgoAction::ACTION_RELABEL)
          && lastAlgoAction.getVertexInfo() == vertexIndex))
     {
-        pen1.setColor(Qt::red);
+        pen.setColor(Qt::red);
     }
     if (((lastAlgoAction.getType() == AlgoAction::ACTION_PUSH)
          && (lastAlgoAction.getEdgeInfo().getFirstVertexIndex() == vertexIndex
             || lastAlgoAction.getEdgeInfo().getSecondVertexIndex() == vertexIndex)))
     {
-        pen1.setColor(Qt::red);
+        pen.setColor(Qt::red);
     }
+    // Если в вершине есть избыток предпотока, то отметим ее синей заливкой.
     if (relabelToFrontAlgo.getVertexExcessFlow(vertexIndex) != 0)
     {
         painter.setBrush(QBrush(Qt::blue));
@@ -230,6 +252,7 @@ void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painte
     {
         painter.setBrush(QBrush(Qt::lightGray));
     }
+    // Исток зиливаем зеленым, сток - красным.
     if (relabelToFrontAlgo.getNetwork().getSourceIndex() == vertexIndex)
     {
         painter.setBrush(QBrush(Qt::green));
@@ -238,38 +261,42 @@ void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painte
     {
         painter.setBrush(QBrush(Qt::red));
     }
-    pen1.setWidth(3);
-    painter.setPen(pen1);
+    pen.setWidth(3);
+    painter.setPen(pen);
     QPoint centerPoint(vertex.getCenterCoordX(), vertex.getCenterCoordY());
     painter.drawEllipse(centerPoint, vertex.getRadius(), vertex.getRadius());
-    std::string heightStr = std::to_string(relabelToFrontAlgo.getVertexExcessFlow(vertexIndex));
+    // В центре вершины выводим величину избыточного потока.
+    std::string excessFlowStr = std::to_string(relabelToFrontAlgo.getVertexExcessFlow(vertexIndex));
     painter.drawText(vertex.getCenterCoordX() - vertex.getRadius() / 2,
                      vertex.getCenterCoordY() + vertex.getRadius() / 4,
-                     heightStr.c_str());
+                     excessFlowStr.c_str());
 }
 
 void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
 {
-    QPen pen1;
-    pen1.setWidth(3);
+    QPen pen;
+    pen.setWidth(3);
+    // Ребро, которое считается "допустимым" по алгоритму, выделяем черным.
     if (relabelToFrontAlgo.getVertexHeight(edge.getFirstVertexIndex())
         == relabelToFrontAlgo.getVertexHeight(edge.getSecondVertexIndex()) + 1)
     {
-        pen1.setColor(Qt::black);
+        pen.setColor(Qt::black);
     }
     else
     {
-        pen1.setColor(Qt::gray);
+        pen.setColor(Qt::gray);
     }
     if (edge.getFlow() != 0)
     {
-        pen1.setColor(Qt::darkBlue);
+        pen.setColor(Qt::darkBlue);
     }
+    // Если в последнем действии алгоритма произошло проталкивание по этому ребру,
+    // то выделим его красным.
     if (lastAlgoAction.getType() == AlgoAction::ACTION_PUSH && lastAlgoAction.getEdgeInfo() == edge)
     {
-        pen1.setColor(Qt::red);
+        pen.setColor(Qt::red);
     }
-    painter.setPen(pen1);
+    painter.setPen(pen);
     QPoint pointFrom(verteciesList[edge.getFirstVertexIndex()].getCenterCoordX(),
             verteciesList[edge.getFirstVertexIndex()].getCenterCoordY());
     QPoint pointTo(verteciesList[edge.getSecondVertexIndex()].getCenterCoordX(),
@@ -281,20 +308,27 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
                         (pointFrom.y() - pointTo.y()) * vertexRaduis / length);
     QPoint arrow((pointFrom.x() - pointTo.x()) * 20 / length,
                         (pointFrom.y() - pointTo.y()) * 20 / length);
-    // Нарисовать стрелку (сами маленькие боковые линии)
-    painter.setPen(pen1);
+    // Рисование стрелки (самих маленьких боковых линий).
+    // Перенесем систему координат в точку конца ребра (ориенированного).
+    // Возьмем маленький отрезок ребра, и нарисуем его, повернув при этом систуму координат
+    // на +30 и -30 градусов соответственно относительно исходного ребра.
+    // Получилась стрелка ->
+    // После этого восстановим систему координат.
+    painter.setPen(pen);
     painter.drawLine(pointFrom, pointTo);
-    painter.setPen(pen1);
     painter.translate(pointTo.x(), pointTo.y());
+    // Еще нужно отступить от конца ребра на радиус вершины
+    // (т.к. ребро идет от центра к центру).
     painter.translate(offsetVector.x(), offsetVector.y());
     painter.rotate(30);
     painter.drawLine(QPoint(0, 0), arrow);
     painter.rotate(-60);
     painter.drawLine(QPoint(0, 0), arrow);
     painter.resetTransform();
-    QPen penForEdgeInfo;
-    if (state == ALGORITHM_RUN || state == DO_NOTHING)
+    // Выводим информацию о ребре (flow | capacity) по середине ребра.
+    if (state == ALGORITHM_RUN || (state == ALGORITHM_TERM && edge.flow != 0))
     {
+        QPen penForEdgeInfo;
         penForEdgeInfo.setColor(Qt::darkGreen);
         painter.setPen(penForEdgeInfo);
         std::string edgeInfo = "(" + std::to_string(edge.getFlow()) + " | "+ std::to_string(edge.getCapacity()) + ")";
@@ -322,11 +356,13 @@ VertexIndex MaxFlowVisualizer::getVertexUnderCursor(QPoint cursorPosition)
     return verteciesList.size();
 }
 
+// Вызывается при срабатывании таймера. В зависимости от состояния делает
+// соответсвующие изменения и перерисовывает окно.
 void MaxFlowVisualizer::animationStep()
 {
     switch (state) {
     case PLANARIZATION:
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < PLANARIZATION_SPEED; ++i)
         {
             if (networkPlacer.doStep(verteciesList))
             {
@@ -335,25 +371,13 @@ void MaxFlowVisualizer::animationStep()
         }
         break;
     case ALGIRITHM_INIT:
-        // todo: оставить тут только планаризацию, все остальное вынести на клавиатуру
         lastAlgoAction = relabelToFrontAlgo.init();
         algoStepsCount = 0;
         state = ALGORITHM_RUN;
         break;
-    case ALGORITHM_RUN:
-        /*if (relabelToFrontAlgo.doStep())
-        {
-            state = DoNothing;
-        }*/
-        break;
-    case VERTEX_DRAGING:
-        // todo ))))))
-        break;
-    case DO_NOTHING:
-        // todo
-        break;
-    default:
-        assert(false);
+    // Все остальные действия зависят не от таймера, а от событий клавиатуры и мыши.
+    // Поэтому тут они не обрабатываются. Однако при некоторых условиях система может
+    // вернуться в состояния, трубующие таймера. Поэтому оставляем таймер работать.
     }
     update();
 }
