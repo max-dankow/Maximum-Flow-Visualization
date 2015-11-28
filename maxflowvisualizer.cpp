@@ -4,19 +4,18 @@
 #include <string>
 #include <iostream>
 
-MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
-    : QWidget(parent), relabelToFrontAlgo(network), networkPlacer(network)
-{
+MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget *parent)
+        : QWidget(parent), relabelToFrontAlgo(network), networkPlacer(network) {
     setWindowState(Qt::WindowFullScreen);
     QRect screen = QApplication::desktop()->screenGeometry();
     resize(screen.width(), screen.height());
     //все вершины располагаются в (0,0), далее уже networkPlacer раскидает их
     verteciesList.resize(relabelToFrontAlgo.getNetwork().getVerticesNumber());
-    for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex)
-    {
+    for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex) {
         int newRadius = VisableVertex::DEFAULT_VERTEX_RADIUS;
         verteciesList[vertex] = VisableVertex(vertex, 0, 0, newRadius,
-                                              newRadius, width() - RIGHT_BAR_OF_HEIGHTS_WIDTH - VisableVertex::DEFAULT_VERTEX_RADIUS,
+                                              newRadius, width() - RIGHT_BAR_OF_HEIGHTS_WIDTH -
+                                                         VisableVertex::DEFAULT_VERTEX_RADIUS,
                                               newRadius, height() - newRadius);
     }
     networkPlacer.throwVerticesRandomly(verteciesList);
@@ -28,8 +27,7 @@ MaxFlowVisualizer::MaxFlowVisualizer(Network network, QWidget* parent)
     setMouseTracking(true);
 }
 
-void MaxFlowVisualizer::paintEvent(QPaintEvent *event)
-{
+void MaxFlowVisualizer::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
     // Включает сглаживание.
     painter.setRenderHint(QPainter::Antialiasing);
@@ -38,96 +36,81 @@ void MaxFlowVisualizer::paintEvent(QPaintEvent *event)
     drawHeightsBar(painter);
 }
 
-void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event)
-{
+void MaxFlowVisualizer::keyPressEvent(QKeyEvent *event) {
     QWidget::keyPressEvent(event);
     switch (event->key()) {
-    case Qt::Key_Left:
-        // Oткат алгоритма на один элементарный шаг назад.
-        // Т.к. даже для очень больших графов сам алгоритм работает меньше секунды,
-        // а визуализатор расчитан на сравнительно маленькие графы (около 30 вершин),
-        // то перезапуск алгоритма с начала до n-1 шага будет эффективнен и надежен.
-        if ((state == ALGORITHM_RUN || state == ALGORITHM_TERM) && algoStepsCount > 0)
-        {
-            relabelToFrontAlgo.init();
-            --algoStepsCount;
-            lastAlgoAction = relabelToFrontAlgo.doSteps(algoStepsCount);
-            if (lastAlgoAction.getType() == AlgoAction::ACTION_TERMINATE)
-            {
-                state = ALGORITHM_TERM;
+        case Qt::Key_Left:
+            // Oткат алгоритма на один элементарный шаг назад.
+            // Т.к. даже для очень больших графов сам алгоритм работает меньше секунды,
+            // а визуализатор расчитан на сравнительно маленькие графы (около 30 вершин),
+            // то перезапуск алгоритма с начала до n-1 шага будет эффективнен и надежен.
+            if ((state == ALGORITHM_RUN || state == ALGORITHM_TERM) && algoStepsCount > 0) {
+                relabelToFrontAlgo.init();
+                --algoStepsCount;
+                lastAlgoAction = relabelToFrontAlgo.doSteps(algoStepsCount);
+                if (lastAlgoAction.getType() == AlgoAction::ACTION_TERMINATE) {
+                    state = ALGORITHM_TERM;
+                }
+                else {
+                    state = ALGORITHM_RUN;
+                }
+                update();
             }
-            else
-            {
-                state = ALGORITHM_RUN;
+            break;
+        case Qt::Key_Right:
+            // Выполняет один элементарный шаг алгоритма.
+            if (state == ALGORITHM_RUN) {
+                lastAlgoAction = relabelToFrontAlgo.doStep();
+                ++algoStepsCount;
+                if (lastAlgoAction.getType() == AlgoAction::ACTION_TERMINATE) {
+                    state = ALGORITHM_TERM;
+                }
+                update();
             }
-            update();
-        }
-        break;
-    case Qt::Key_Right:
-        // Выполняет один элементарный шаг алгоритма.
-        if (state == ALGORITHM_RUN)
-        {
-            lastAlgoAction = relabelToFrontAlgo.doStep();
-            ++algoStepsCount;
-            if (lastAlgoAction.getType() == AlgoAction::ACTION_TERMINATE)
-            {
-                state = ALGORITHM_TERM;
+            break;
+        case Qt::Key_Space:
+            // Остановка размещения графа.
+            if (state == PLANARIZATION) {
+                state = ALGIRITHM_INIT;
             }
-            update();
-        }
-        break;
-    case Qt::Key_Space:
-        // Остановка размещения графа.
-        if (state == PLANARIZATION)
-        {
-            state = ALGIRITHM_INIT;
-        }
-        break;
-    case Qt::Key_R:
-        // Полный перезапуск замещения графа.
-        networkPlacer.throwVerticesRandomly(verteciesList);
-        state = PLANARIZATION;
-        break;
+            break;
+        case Qt::Key_R:
+            // Полный перезапуск замещения графа.
+            networkPlacer.throwVerticesRandomly(verteciesList);
+            state = PLANARIZATION;
+            break;
     }
 }
 
 // Просто переключение между полноэкранным режимом и максимимзацией окна.
-void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *event)
-{
-  QWidget::mouseDoubleClickEvent(event);
-  if(isFullScreen())
-  {
-     setWindowState(Qt::WindowMaximized);
-  } else
-  {
-     setWindowState(Qt::WindowFullScreen);
-  }
+void MaxFlowVisualizer::mouseDoubleClickEvent(QMouseEvent *event) {
+    QWidget::mouseDoubleClickEvent(event);
+    if (isFullScreen()) {
+        setWindowState(Qt::WindowMaximized);
+    } else {
+        setWindowState(Qt::WindowFullScreen);
+    }
 }
 
 // При нажатии клавиши мыши может начаться перетаскивание вершины.
 // Обработчик анализирует, на какую вершину попадает курсор и,
 // если он попадает на вершину, то текущее состояние системы запоминается
 // и визуализаор переходит в состояние перетаскивания вершины.
-void MaxFlowVisualizer::mousePressEvent(QMouseEvent *event)
-{
+void MaxFlowVisualizer::mousePressEvent(QMouseEvent *event) {
     QWidget::mousePressEvent(event);
     rememberState = state;
     vertexToDrag = getVertexUnderCursor(event->pos());
-    if (vertexToDrag != verteciesList.size())
-    {
+    if (vertexToDrag != verteciesList.size()) {
         state = VERTEX_DRAGING;
     }
 }
 
 // Обработчик этого события отвечает только за сдвиг перетаскиваемой вершины,
 // если система находится соответственно в состоянии перетаскивания.
-void MaxFlowVisualizer::mouseMoveEvent(QMouseEvent *event)
-{
+void MaxFlowVisualizer::mouseMoveEvent(QMouseEvent *event) {
     QWidget::mouseMoveEvent(event);
-    if (state == VERTEX_DRAGING)
-    {
-        if (vertexToDrag != verteciesList.size())
-        {
+    if (state == VERTEX_DRAGING) {
+        if (vertexToDrag != verteciesList.size()) {
             double xDelta = event->pos().x() - verteciesList[vertexToDrag].getCenterCoordX();
             double yDelta = event->pos().y() - verteciesList[vertexToDrag].getCenterCoordY();
             verteciesList[vertexToDrag].move(xDelta, yDelta);
@@ -138,23 +121,19 @@ void MaxFlowVisualizer::mouseMoveEvent(QMouseEvent *event)
 
 // Отвечает за завершение перетаскивания вершины при отпускании клавиши мыши.
 // Восстанавливает состояние системы на момент нажатия мыши.
-void MaxFlowVisualizer::mouseReleaseEvent(QMouseEvent *event)
-{
+void MaxFlowVisualizer::mouseReleaseEvent(QMouseEvent *event) {
     QWidget::mousePressEvent(event);
     state = rememberState;
 }
 
 // Считает сколько уровней высот вершин следует реально отображать
 // (максимальный занятый + 1).
-int MaxFlowVisualizer::countUsedHeightLevels() const
-{
+int MaxFlowVisualizer::countUsedHeightLevels() const {
     size_t verteciesNumber = verteciesList.size();
     int levelCount = 0;
-    for (VertexIndex vertex = 0; vertex < verteciesNumber; ++vertex)
-    {
+    for (VertexIndex vertex = 0; vertex < verteciesNumber; ++vertex) {
         int vertexHeight = relabelToFrontAlgo.getVertexHeight(vertex);
-        if (levelCount < vertexHeight)
-        {
+        if (levelCount < vertexHeight) {
             levelCount = vertexHeight;
         }
     }
@@ -163,8 +142,7 @@ int MaxFlowVisualizer::countUsedHeightLevels() const
 }
 
 // Рисует панель высот вершин (справа).
-void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
-{
+void MaxFlowVisualizer::drawHeightsBar(QPainter &painter) {
     painter.save();
     painter.setPen(QPen(Qt::black, 3));
     painter.setBrush(Qt::lightGray);
@@ -178,8 +156,7 @@ void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
     int bottomY = barHeight;
     double scaleHeight = barHeight / levelCount;
     // Рисует горизонтальные линии, соответсвующие уровням.
-    for (size_t level = 0; level < levelCount; ++level)
-    {
+    for (size_t level = 0; level < levelCount; ++level) {
         int x = 0;
         painter.drawLine(x,
                          bottomY - scaleHeight * level,
@@ -188,8 +165,7 @@ void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
     }
     // Отображение вершин на панели высот.
     double scaleWidth = RIGHT_BAR_OF_HEIGHTS_WIDTH / verteciesNumber;
-    for (size_t vertex = 0; vertex < verteciesNumber; ++vertex)
-    {
+    for (size_t vertex = 0; vertex < verteciesNumber; ++vertex) {
         // Для того, чтобы все визуальные эффекты вершины (выделение, надписи и т.д.)
         // отображались и на боковой панели высот, мы в явном виде создаем новую
         // вершину - точную копию исходной (простой конструктор копирования)
@@ -202,63 +178,50 @@ void MaxFlowVisualizer::drawHeightsBar(QPainter &painter)
     painter.restore();
 }
 
-void MaxFlowVisualizer::showVertecies(QPainter &painter)
-{
-    for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++ vertex)
-    {
+void MaxFlowVisualizer::showVertecies(QPainter &painter) {
+    for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex) {
         drawVertex(verteciesList[vertex], painter);
     }
 }
 
-void MaxFlowVisualizer::showEdges(QPainter &painter)
-{
-    for (VertexIndex vertex = 0; vertex < relabelToFrontAlgo.getNetwork().getVerticesNumber(); ++vertex)
-    {
+void MaxFlowVisualizer::showEdges(QPainter &painter) {
+    for (VertexIndex vertex = 0; vertex < relabelToFrontAlgo.getNetwork().getVerticesNumber(); ++vertex) {
         auto adjacentEdgesList = relabelToFrontAlgo.getNetwork().getEdgesListFromVertex(vertex);
-        for (Edge edge : adjacentEdgesList)
-        {
-            if (edge.getCapacity() != 0)
-            {
+        for (Edge edge : adjacentEdgesList) {
+            if (edge.getCapacity() != 0) {
                 drawEdge(edge, painter);
             }
         }
     }
 }
 
-void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painter)
-{
+void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter &painter) {
     VertexIndex vertexIndex = vertex.getVertexInGraphIndex();
     QPen pen(Qt::black, 2);
     // Если вершина была задействована в последнем шаге алгоритма
     // то выделяем ее красным цветом.
     if (((lastAlgoAction.getType() == AlgoAction::ACTION_SELECT
           || lastAlgoAction.getType() == AlgoAction::ACTION_RELABEL)
-         && lastAlgoAction.getVertexInfo() == vertexIndex))
-    {
+         && lastAlgoAction.getVertexInfo() == vertexIndex)) {
         pen.setColor(Qt::red);
     }
     if (((lastAlgoAction.getType() == AlgoAction::ACTION_PUSH)
          && (lastAlgoAction.getEdgeInfo().getFirstVertexIndex() == vertexIndex
-            || lastAlgoAction.getEdgeInfo().getSecondVertexIndex() == vertexIndex)))
-    {
+             || lastAlgoAction.getEdgeInfo().getSecondVertexIndex() == vertexIndex))) {
         pen.setColor(Qt::red);
     }
     // Если в вершине есть избыток предпотока, то отметим ее синей заливкой.
-    if (relabelToFrontAlgo.getVertexExcessFlow(vertexIndex) != 0)
-    {
+    if (relabelToFrontAlgo.getVertexExcessFlow(vertexIndex) != 0) {
         painter.setBrush(QBrush(Qt::blue));
     }
-    else
-    {
+    else {
         painter.setBrush(QBrush(Qt::lightGray));
     }
-    // Исток зиливаем зеленым, сток - красным.
-    if (relabelToFrontAlgo.getNetwork().getSourceIndex() == vertexIndex)
-    {
+    // Исток заливаем зеленым, сток - красным.
+    if (relabelToFrontAlgo.getNetwork().getSourceIndex() == vertexIndex) {
         painter.setBrush(QBrush(Qt::green));
     }
-    if (relabelToFrontAlgo.getNetwork().getSinkIndex() == vertexIndex)
-    {
+    if (relabelToFrontAlgo.getNetwork().getSinkIndex() == vertexIndex) {
         painter.setBrush(QBrush(Qt::red));
     }
     pen.setWidth(3);
@@ -272,42 +235,37 @@ void MaxFlowVisualizer::drawVertex(const VisableVertex &vertex, QPainter& painte
                      excessFlowStr.c_str());
 }
 
-void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
-{
+void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const {
     QPen pen;
     pen.setWidth(3);
     // Ребро, которое считается "допустимым" по алгоритму, выделяем черным.
     if (relabelToFrontAlgo.getVertexHeight(edge.getFirstVertexIndex())
-        == relabelToFrontAlgo.getVertexHeight(edge.getSecondVertexIndex()) + 1)
-    {
+        == relabelToFrontAlgo.getVertexHeight(edge.getSecondVertexIndex()) + 1) {
         pen.setColor(Qt::black);
     }
-    else
-    {
+    else {
         pen.setColor(Qt::gray);
     }
-    if (edge.getFlow() != 0)
-    {
+    if (edge.getFlow() != 0) {
         pen.setColor(Qt::darkBlue);
     }
     // Если в последнем действии алгоритма произошло проталкивание по этому ребру,
     // то выделим его красным.
-    if (lastAlgoAction.getType() == AlgoAction::ACTION_PUSH && lastAlgoAction.getEdgeInfo() == edge)
-    {
+    if (lastAlgoAction.getType() == AlgoAction::ACTION_PUSH && lastAlgoAction.getEdgeInfo() == edge) {
         pen.setColor(Qt::red);
     }
     painter.setPen(pen);
     QPoint pointFrom(verteciesList[edge.getFirstVertexIndex()].getCenterCoordX(),
-            verteciesList[edge.getFirstVertexIndex()].getCenterCoordY());
+                     verteciesList[edge.getFirstVertexIndex()].getCenterCoordY());
     QPoint pointTo(verteciesList[edge.getSecondVertexIndex()].getCenterCoordX(),
-            verteciesList[edge.getSecondVertexIndex()].getCenterCoordY());
+                   verteciesList[edge.getSecondVertexIndex()].getCenterCoordY());
     double length = sqrt(pow(pointFrom.x() - pointTo.x(), 2)
                          + pow(pointFrom.y() - pointTo.y(), 2));
     long vertexRaduis = verteciesList[edge.getSecondVertexIndex()].getRadius();
     QPoint offsetVector((pointFrom.x() - pointTo.x()) * vertexRaduis / length,
                         (pointFrom.y() - pointTo.y()) * vertexRaduis / length);
     QPoint arrow((pointFrom.x() - pointTo.x()) * 20 / length,
-                        (pointFrom.y() - pointTo.y()) * 20 / length);
+                 (pointFrom.y() - pointTo.y()) * 20 / length);
     // Рисование стрелки (самих маленьких боковых линий).
     // Перенесем систему координат в точку конца ребра (ориенированного).
     // Возьмем маленький отрезок ребра, и нарисуем его, повернув при этом систуму координат
@@ -326,12 +284,11 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
     painter.drawLine(QPoint(0, 0), arrow);
     painter.resetTransform();
     // Выводим информацию о ребре (flow | capacity) по середине ребра.
-    if (state == ALGORITHM_RUN || (state == ALGORITHM_TERM && edge.flow != 0))
-    {
+    if (state == ALGORITHM_RUN || (state == ALGORITHM_TERM && edge.flow != 0)) {
         QPen penForEdgeInfo;
         penForEdgeInfo.setColor(Qt::darkGreen);
         painter.setPen(penForEdgeInfo);
-        std::string edgeInfo = "(" + std::to_string(edge.getFlow()) + " | "+ std::to_string(edge.getCapacity()) + ")";
+        std::string edgeInfo = "(" + std::to_string(edge.getFlow()) + " | " + std::to_string(edge.getCapacity()) + ")";
         painter.drawText(pointFrom.x() + (pointTo.x() - pointFrom.x()) / 2,
                          pointFrom.y() + (pointTo.y() - pointFrom.y()) / 2,
                          edgeInfo.c_str());
@@ -341,15 +298,12 @@ void MaxFlowVisualizer::drawEdge(const Edge &edge, QPainter &painter) const
 // По координатам курсора получает уникальный номер вершины, которая
 // попадает под него. В противном случае возвращает номер вешины,
 // следующей за последней в списке вершин (то есть verticesList.size()).
-VertexIndex MaxFlowVisualizer::getVertexUnderCursor(QPoint cursorPosition)
-{
+VertexIndex MaxFlowVisualizer::getVertexUnderCursor(QPoint cursorPosition) {
     QVector2D cursor(cursorPosition);
-    for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex)
-    {
+    for (VertexIndex vertex = 0; vertex < verteciesList.size(); ++vertex) {
         QVector2D currentVertexCenter(verteciesList[vertex].getCenterCoordX(), verteciesList[vertex].getCenterCoordY());
         QVector2D distanceVector(currentVertexCenter - cursor);
-        if (distanceVector.length() < verteciesList[vertex].getRadius())
-        {
+        if (distanceVector.length() < verteciesList[vertex].getRadius()) {
             return vertex;
         }
     }
@@ -358,26 +312,23 @@ VertexIndex MaxFlowVisualizer::getVertexUnderCursor(QPoint cursorPosition)
 
 // Вызывается при срабатывании таймера. В зависимости от состояния делает
 // соответсвующие изменения и перерисовывает окно.
-void MaxFlowVisualizer::animationStep()
-{
+void MaxFlowVisualizer::animationStep() {
     switch (state) {
-    case PLANARIZATION:
-        for (int i = 0; i < PLANARIZATION_SPEED; ++i)
-        {
-            if (networkPlacer.doStep(verteciesList))
-            {
-                state = ALGIRITHM_INIT;
+        case PLANARIZATION:
+            for (int i = 0; i < PLANARIZATION_SPEED; ++i) {
+                if (networkPlacer.doStep(verteciesList)) {
+                    state = ALGIRITHM_INIT;
+                }
             }
-        }
-        break;
-    case ALGIRITHM_INIT:
-        lastAlgoAction = relabelToFrontAlgo.init();
-        algoStepsCount = 0;
-        state = ALGORITHM_RUN;
-        break;
-    // Все остальные действия зависят не от таймера, а от событий клавиатуры и мыши.
-    // Поэтому тут они не обрабатываются. Однако при некоторых условиях система может
-    // вернуться в состояния, трубующие таймера. Поэтому оставляем таймер работать.
+            break;
+        case ALGIRITHM_INIT:
+            lastAlgoAction = relabelToFrontAlgo.init();
+            algoStepsCount = 0;
+            state = ALGORITHM_RUN;
+            break;
+            // Все остальные действия зависят не от таймера, а от событий клавиатуры и мыши.
+            // Поэтому тут они не обрабатываются. Однако при некоторых условиях система может
+            // вернуться в состояния, трубующие таймера. Поэтому оставляем таймер работать.
     }
     update();
 }

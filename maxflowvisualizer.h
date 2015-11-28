@@ -13,41 +13,53 @@
 #include "algorithmrelabeltofront.h"
 #include "forcedirectedgraphdrawing.h"
 
-class MaxFlowVisualizer : public QWidget
-{
+class MaxFlowVisualizer : public QWidget {
     Q_OBJECT
     // Используется для представления состояния работы визуализатора.
-    // Поведение визуализатора маняется соответствующим образом.
-    enum States{
+        // Поведение визуализатора меняется соответствующим образом.
+    enum States {
         // Состояние пошагового исполнения силового алгоритма рамещения вершин.
-        PLANARIZATION,
+                PLANARIZATION,
         // Состояние перетаксивания вершины мышкой.
-        VERTEX_DRAGING,
+                VERTEX_DRAGING,
         // Единажды вызывается инициализация данных алгоритма.
-        ALGIRITHM_INIT,
+                ALGIRITHM_INIT,
         // Состояние пошагового исполнения самого алгоритма и визуализации.
-        ALGORITHM_RUN,
+                ALGORITHM_RUN,
         // Состояние простого отображения сети без выполнения действий.
-        ALGORITHM_TERM
+                ALGORITHM_TERM
     };
 
 public:
     MaxFlowVisualizer(Network network, QWidget *parent = 0);
+
 protected:
     void paintEvent(QPaintEvent *event);
+
     void keyPressEvent(QKeyEvent *event);
+
     void mouseDoubleClickEvent(QMouseEvent *event);
+
     void mousePressEvent(QMouseEvent *event);
+
     void mouseMoveEvent(QMouseEvent *event);
+
     void mouseReleaseEvent(QMouseEvent *event);
+
 private:
+    void showVertecies(QPainter &painter);
+
+    void showEdges(QPainter &painter);
+
+    void drawVertex(const VisableVertex &vertex, QPainter &painter);
+
+    void drawEdge(const Edge &edge, QPainter &painter) const;
+
+    VertexIndex getVertexUnderCursor(QPoint cursorPosition);
+
     // Рисует справа диаграмму с высотами вершин.
     void drawHeightsBar(QPainter &painter);
-    void showVertecies(QPainter &painter);
-    void showEdges(QPainter &painter);
-    void drawVertex(const VisableVertex &vertex, QPainter &painter);
-    void drawEdge(const Edge &edge, QPainter &painter) const;
-    VertexIndex getVertexUnderCursor(QPoint cursorPosition);
+
     int countUsedHeightLevels() const;
 
     const int ANIMATION_STEP_DELAY_MS = 5;
@@ -71,9 +83,12 @@ private:
     ForceDirectedNetworkDrawing networkPlacer;
     // Уникальный номер вершины, перетаскиваемой мышкой (если перетаскивание происходит).
     VertexIndex vertexToDrag;
-private slots:
+private
+    slots:
     // Отвечает за плавную анимацию размещения графа.
-    void animationStep();
+    void
+
+    animationStep();
 };
 
 #endif // MAXFLOWVISUALIZER_H
